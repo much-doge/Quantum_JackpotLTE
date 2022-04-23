@@ -18,11 +18,11 @@
 
 # Directory Contol
 CR_DIR=$(pwd)
-CR_TC=/home/miko/Documents/playground/linaro_-_4.9/bin/aarch64-linux-gnu-
+CR_TC=/home/prashantp/Downloads/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 CR_DTS=arch/arm64/boot/dts
 CR_DTB=$CR_DIR/boot.img-dtb
 # Kernel Variables
-CR_VERSION=V1.1
+CR_VERSION=V1.0
 CR_NAME=Quantum_Quack
 CR_JOBS=5
 CR_ANDROID=p
