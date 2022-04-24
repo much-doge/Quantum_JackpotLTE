@@ -52,6 +52,7 @@ int gpu_dvfs_governor_change(int governor_type);
 int gpu_dvfs_init_time_in_state(void);
 int gpu_dvfs_update_time_in_state(int clock);
 int gpu_dvfs_get_level(int clock);
+int gpu_dvfs_get_stock_level(int clock);
 int gpu_dvfs_get_level_clock(int clock);
 int gpu_dvfs_get_voltage(int clock);
 int gpu_dvfs_get_cur_asv_abb(void);
@@ -85,3 +86,4 @@ typedef enum {
 int gpu_pm_qos_command(struct exynos_context *platform, gpu_pmqos_state state);
 int gpu_mif_pmqos(struct exynos_context *platform, int mem_freq);
 #endif /* _GPU_DVFS_HANDLER_H_ */
+
