@@ -47,16 +47,8 @@ static unsigned int ect_find_constraint_freq(struct ect_minlock_domain *ect_doma
 	unsigned int i;
 
 	for (i =0; i < ect_domain->num_of_level; i++)
-{
-		if(ect_domain->level[i].main_frequencies==1794000||ect_domain->level[i].main_frequencies==2093000||ect_domain->level[i].main_frequencies==2002000)
-			ect_domain->level[i].sub_frequencies=533000;
-		if(ect_domain->level[i].main_frequencies==1352000)
-			ect_domain->level[i].sub_frequencies=267000;
-		if(ect_domain->level[i].main_frequencies==1014000)
-			ect_domain->level[i].sub_frequencies=133000;
-		//exynos_dm/constraint_table_dm_mif
 		if (ect_domain->level[i].main_frequencies == freq) break;
-}
+
 	return ect_domain->level[i].sub_frequencies;
 }
 #endif
@@ -416,4 +408,3 @@ static int __init exynos7885_devfreq_mif_initcall(void)
 	return 0;
 }
 fs_initcall(exynos7885_devfreq_mif_initcall);
-
