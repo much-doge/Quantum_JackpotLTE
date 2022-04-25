@@ -36,9 +36,6 @@
 #include <soc/samsung/cal-if.h>
 #include <soc/samsung/exynos-pd.h>
 #include <dt-bindings/clock/exynos7885.h>
-#ifdef CONFIG_SEC_DEBUG
-#include <linux/sec_debug.h>
-#endif
 
 #include "decon.h"
 #include "dsim.h"
@@ -156,66 +153,6 @@ void decon_dump(struct decon_device *decon)
 	if (acquired)
 		console_unlock();
 }
-
-#ifdef CONFIG_LOGGING_BIGDATA_BUG
-extern unsigned int get_panel_bigdata(struct dsim_device *dsim);
-
-/* Gen Big Data Error for Decon's Bug
- *
- * return value
- * 1. 31 ~ 28 : decon_id
- * 2. 27 ~ 24 : decon eing pend register
- * 3. 23 ~ 16 : dsim underrun count
- * 4. 15 ~  8 : 0x0e panel register
- * 5.  7 ~  0 : 0x0a panel register
- * */
-
-static unsigned int gen_decon_bug_bigdata(struct decon_device *decon)
-{
-	struct dsim_device *dsim;
-	unsigned int value, panel_value;
-	unsigned int underrun_cnt = 0;
-
-	/* for decon id */
-	value = decon->id << 28;
-
-
-	if (decon->id == 0) {
-		/* for eint pend value */
-		value |= (decon->eint_pend & 0x0f) << 24;
-
-		/* for underrun count */
-		dsim = container_of(decon->out_sd[0], struct dsim_device, sd);
-
-		if (dsim != NULL) {
-			underrun_cnt = dsim->total_underrun_cnt;
-			if (underrun_cnt > 0xff) {
-				decon_info("%s:dsim underrun exceed 1byte : %d\n",
-						__func__, underrun_cnt);
-				underrun_cnt = 0xff;
-			}
-		}
-		value |= underrun_cnt << 16;
-
-		/* for panel dump */
-		panel_value = get_panel_bigdata(dsim);
-		value |= panel_value & 0xffff;
-	}
-
-	decon_info("%s:big data : %x\n", __func__, value);
-	return value;
-}
-
-void log_decon_bigdata(struct decon_device *decon)
-{
-	unsigned int bug_err_num;
-
-	bug_err_num = gen_decon_bug_bigdata(decon);
-#ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
-	sec_debug_set_extra_info_decon(bug_err_num);
-#endif
-}
-#endif
 
 /* ---------- CHECK FUNCTIONS ----------- */
 static void decon_win_conig_to_regs_param
