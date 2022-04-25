@@ -54,7 +54,7 @@
 /* irq_flags bits */
 #define S3C_FB_VSYNC_IRQ_EN	0
 
-#define VSYNC_TIMEOUT_MSEC 50
+#define VSYNC_TIMEOUT_MSEC 5000
 
 struct s3c_fb;
 
