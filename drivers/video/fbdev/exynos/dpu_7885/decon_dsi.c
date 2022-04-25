@@ -112,7 +112,7 @@ int decon_register_irq(struct decon_device *decon)
 		}
 
 		ret = devm_request_irq(dev, res->start, decon_irq_handler, 0,
-		pdev->name, decon);
+				pdev->name, decon);
 		if (ret) {
 			decon_err("failed to install FIFO irq\n");
 			return ret;
