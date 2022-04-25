@@ -438,7 +438,7 @@ static int decon_enable(struct decon_device *decon)
 	struct decon_mode_info psr;
 	struct decon_param p;
 	int ret = 0;
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 	struct dsim_device *dsim = NULL;
 
 	if (!decon->id && decon->dt.out_type == DECON_OUT_DSI)
@@ -476,7 +476,7 @@ static int decon_enable(struct decon_device *decon)
 
 	if (decon->state == DECON_STATE_ON) {
 		decon_warn("decon%d already enabled\n", decon->id);
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 		decon_info("%s: doze_state: %d\n", __func__, decon->doze_state);
 		if (IS_DOZE(decon->doze_state)) {
 			ret = v4l2_subdev_call(decon->out_sd[0], video, s_stream, 1);
@@ -557,7 +557,7 @@ static int decon_enable(struct decon_device *decon)
 
 	decon->state = DECON_STATE_ON;
 	decon_reg_set_int(decon->id, &psr, 1);
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 	decon_info("%s: doze_state: %d\n", __func__, decon->doze_state);
 	decon->doze_state = DOZE_STATE_NORMAL;
 	if (IS_DOZE(decon->doze_state))
@@ -678,7 +678,7 @@ static int decon_disable(struct decon_device *decon)
 	decon_runtime_suspend(decon->dev);
 #endif
 	decon->state = DECON_STATE_OFF;
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 	decon->doze_state = DOZE_STATE_SUSPEND;
 #endif
 
@@ -1960,7 +1960,7 @@ static int decon_ioctl(struct fb_info *info, unsigned int cmd,
 	bool active;
 	u32 crc_bit, crc_start;
 	u32 crc_data[2];
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 	u32 doze;
 #endif
 	decon_hiber_block_exit(decon);
@@ -2133,7 +2133,7 @@ static int decon_ioctl(struct fb_info *info, unsigned int cmd,
 		}
 		break;
 
-#if defined(CONFIG_EXYNOS_DOZE)
+#if defined(CONFIG_EXYNOS_SUPPORT_DOZE)
 	case S3CFB_POWER_MODE:
 		if (get_user(doze, (int __user *)arg)) {
 			ret = -EFAULT;
