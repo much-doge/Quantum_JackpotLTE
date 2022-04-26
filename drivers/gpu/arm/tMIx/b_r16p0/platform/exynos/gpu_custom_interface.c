@@ -16,6 +16,7 @@
  */
 
 #include <mali_kbase.h>
+
 #include <linux/fb.h>
 
 #include <linux/sysfs_helpers.h>
@@ -36,12 +37,6 @@
 #ifdef CONFIG_MALI_RT_PM
 #include <soc/samsung/exynos-pd.h>
 #endif
-
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-#include <soc/samsung/bts.h>
-#endif
-
-#include "device/mali_kbase_device.h"
 
 #ifdef CONFIG_SOC_EXYNOS7885
 #define GPU_MAX_VOLT		1100000
@@ -152,7 +147,7 @@ static ssize_t set_clock(struct device *dev, struct device_attribute *attr, cons
 #endif /* CONFIG_MALI_DVFS */
 		cur_state = false;
 	} else {
-		policy_count = kbase_pm_list_policies(pkbdev, &policy_list);
+		policy_count = kbase_pm_list_policies(&policy_list);
 		for (i = 0; i < policy_count; i++) {
 			if (sysfs_streq(policy_list[i]->name, "always_on")) {
 				kbase_pm_set_policy(pkbdev, policy_list[i]);
@@ -1622,16 +1617,16 @@ static ssize_t set_trace_level(struct device *dev, struct device_attribute *attr
 	return count;
 }
 
-extern void kbasep_ktrace_format_msg(struct kbase_ktrace_msg *trace_msg, char *buffer, int len);
+extern void kbasep_trace_format_msg(struct kbase_trace *trace_msg, char *buffer, int len);
 static ssize_t show_trace_dump(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	ssize_t ret = 0;
 	unsigned long flags;
 	u32 start, end;
 
-	spin_lock_irqsave(&pkbdev->ktrace.lock, flags);
-	start = pkbdev->ktrace.first_out;
-	end = pkbdev->ktrace.next_in;
+	spin_lock_irqsave(&pkbdev->trace_lock, flags);
+	start = pkbdev->trace_first_out;
+	end = pkbdev->trace_next_in;
 
 	while (start != end) {
 		char buffer[KBASE_TRACE_SIZE];
@@ -1825,57 +1820,6 @@ static ssize_t show_cl_boost_disable(struct device *dev, struct device_attribute
 	return ret;
 }
 #endif
-
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-static ssize_t set_camera_ext_bts_scenario(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-{
-	unsigned int camera_ext_bts_scenario = 0;
-	int ret;
-
-	struct exynos_context *platform = (struct exynos_context *)pkbdev->platform_context;
-
-	if (!platform)
-		return -ENODEV;
-
-	ret = kstrtoint(buf, 0, &camera_ext_bts_scenario);
-	if (ret) {
-		GPU_LOG(DVFS_WARNING, DUMMY, 0u, 0u, "%s: invalid value\n", __func__);
-		return -ENOENT;
-	}
-
-	if (camera_ext_bts_scenario == 0 && platform->is_set_bts_camera_ext) {
-		bts_del_scenario(platform->bts_camera_ext_idx);
-		platform->is_set_bts_camera_ext = 0;
-	} else if (camera_ext_bts_scenario != 0 && platform->is_set_bts_camera_ext == 0) {
-		bts_add_scenario(platform->bts_camera_ext_idx);
-		platform->is_set_bts_camera_ext = 1;
-	}
-
-	return count;
-}
-
-static ssize_t show_camera_ext_bts_scenario(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	ssize_t ret = 0;
-	struct exynos_context *platform = (struct exynos_context *)pkbdev->platform_context;
-
-	if (!platform)
-		return -ENODEV;
-
-	ret += snprintf(buf+ret, PAGE_SIZE-ret, "%d", platform->is_set_bts_camera_ext);
-
-	if (ret < PAGE_SIZE - 1) {
-		ret += snprintf(buf+ret, PAGE_SIZE-ret, "\n");
-	} else {
-		buf[PAGE_SIZE-2] = '\n';
-		buf[PAGE_SIZE-1] = '\0';
-		ret = PAGE_SIZE-1;
-	}
-
-	return ret;
-}
-#endif
-
 /** The sysfs file @c clock, fbdev.
  *
  * This is used for obtaining information about the mali t series operating clock & framebuffer address,
@@ -1935,10 +1879,6 @@ DEVICE_ATTR(sustainable_status, S_IRUGO, show_sustainable_status, NULL);
 #ifdef CONFIG_MALI_SEC_CL_BOOST
 DEVICE_ATTR(cl_boost_disable, S_IRUGO|S_IWUSR, show_cl_boost_disable, set_cl_boost_disable);
 #endif
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-DEVICE_ATTR(camera_ext_bts, S_IRUGO|S_IWUSR, show_camera_ext_bts_scenario, set_camera_ext_bts_scenario);
-#endif
-
 
 #ifdef CONFIG_MALI_DEBUG_KERNEL_SYSFS
 #ifdef CONFIG_MALI_DVFS
@@ -2290,7 +2230,7 @@ static ssize_t set_kernel_sysfs_governor(struct kobject *kobj, struct kobj_attri
 
 static ssize_t show_kernel_sysfs_gpu_model(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	/* COPY from mali_kbase_core_linux.c : 2606 line, r26p0 */
+	/* COPY from mali_kbase_core_linux.c : 2594 line, last updated: 20161017, r2p0-03rel0 */
 	static const struct gpu_product_id_name {
 		unsigned id;
 		char *name;
@@ -2336,63 +2276,15 @@ static ssize_t show_kernel_sysfs_gpu_model(struct kobject *kobj, struct kobj_att
 	for (i = 0; i < ARRAY_SIZE(gpu_product_id_names); ++i) {
                 const struct gpu_product_id_name *p = &gpu_product_id_names[i];
 
-                if ((p->id & product_id_mask) ==
-                    (product_id & product_id_mask)) {
-                        product_name = p->name;
-                        break;
-                }
-        }
-
-	return scnprintf(buf, PAGE_SIZE, "%s\n", product_name);
-}
-
-
-static ssize_t show_kernel_sysfs_gpu_memory(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-{
-	struct list_head *entry;
-	const struct list_head *kbdev_list;
-	ssize_t ret = 0;
-	bool buffer_full = false;
-	const ssize_t buf_size = PAGE_SIZE;
-	const int padding = 100;
-
-	kbdev_list = kbase_device_get_list();
-	list_for_each(entry, kbdev_list) {
-		struct kbase_device *kbdev = NULL;
-		struct kbase_context *kctx;
-
-		kbdev = list_entry(entry, struct kbase_device, entry);
-
-		if (ret + padding > buf_size) {
-			buffer_full = true;
+		if ((GPU_ID_IS_NEW_FORMAT(p->id) == is_new_format) &&
+		    (p->id & product_id_mask) ==
+		    (product_id & product_id_mask)) {
+			product_name = p->name;
 			break;
 		}
-		/* output the total memory usage and cap for this device */
-		ret += scnprintf(buf + ret, buf_size - ret, "%-16s  %10u\n",
-				kbdev->devname,
-				atomic_read(&(kbdev->memdev.used_pages)));
-		mutex_lock(&kbdev->kctx_list_lock);
-		list_for_each_entry(kctx, &kbdev->kctx_list, kctx_list_link) {
-			if (ret + padding > buf_size) {
-				buffer_full = true;
-				break;
-			}
-
-			/* output the memory usage and cap for each kctx
-			* opened on this device */
-			ret += snprintf(buf + ret, buf_size - ret, "  %s-0x%p %10u\n",
-				"kctx",
-				kctx,
-				atomic_read(&(kctx->used_pages)));
-		}
-		mutex_unlock(&kbdev->kctx_list_lock);
 	}
-	kbase_device_put_list(kbdev_list);
 
-	if (buffer_full)
-		ret += scnprintf(buf + ret, buf_size - ret, "error: buffer is full\n");
-
-	return ret;
+	return scnprintf(buf, PAGE_SIZE, "%s\n", product_name);
 }
 
 #if defined(CONFIG_MALI_DVFS) && defined(CONFIG_EXYNOS_THERMAL) && defined(CONFIG_GPU_THERMAL)
@@ -2469,8 +2361,6 @@ static struct kobj_attribute gpu_available_governor_attribute =
 static struct kobj_attribute gpu_model_attribute =
 	__ATTR(gpu_model, S_IRUGO, show_kernel_sysfs_gpu_model, NULL);
 
-static struct kobj_attribute gpu_memory_attribute =
-	__ATTR(gpu_memory, S_IRUGO, show_kernel_sysfs_gpu_memory, NULL);
 
 
 static struct attribute *attrs[] = {
@@ -2490,7 +2380,6 @@ static struct attribute *attrs[] = {
 	&gpu_available_governor_attribute.attr,
 #endif /* #ifdef CONFIG_MALI_DVFS */
 	&gpu_model_attribute.attr,
-	&gpu_memory_attribute.attr,
 	NULL,
 };
 
@@ -2715,13 +2604,6 @@ int gpu_create_sysfs_file(struct device *dev)
 	}
 #endif
 
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-	if (device_create_file(dev, &dev_attr_camera_ext_bts)) {
-		GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "couldn't create sysfs file [camera_ext_bts]\n");
-		goto out;
-	}
-#endif
-
 #ifdef CONFIG_MALI_DEBUG_KERNEL_SYSFS
 	external_kobj = kobject_create_and_add("gpu", kernel_kobj);
 	if (!external_kobj) {
@@ -2797,9 +2679,6 @@ void gpu_remove_sysfs_file(struct device *dev)
 #endif
 #ifdef CONFIG_MALI_SEC_CL_BOOST
 	device_remove_file(dev, &dev_attr_cl_boost_disable);
-#endif
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-	device_remove_file(dev, &dev_attr_camera_ext_bts);
 #endif
 #ifdef CONFIG_MALI_DEBUG_KERNEL_SYSFS
 	kobject_put(external_kobj);

@@ -234,20 +234,6 @@ int gpu_control_set_dvfs(struct kbase_device *kbdev, int clock)
 #endif /* CONFIG_MALI_PM_QOS */
 
 	gpu_dvfs_update_time_in_state(prev_clock);
-
-	/*
-	 * We assume there is only one callback registered, and we call it directly.
-	 * We assume there is enough locking already (both here and in the receiving callback)
-	 * This is why we simply call the callback funciton directly
-	 */
-	if (platform->nb_clock_change != NULL) {
-		struct kbase_gpu_clk_notifier_data ndata;
-		ndata.gpu_clk_handle = platform; /* only one clock, we use the platform struct as a fake clock handle */
-		ndata.old_rate = prev_clock;
-		ndata.new_rate = clock;
-		platform->nb_clock_change->notifier_call(platform->nb_clock_change, POST_RATE_CHANGE, &ndata);
-	}
-
 	prev_clock = clock;
 
 	return ret;
@@ -344,7 +330,7 @@ int gpu_control_power_policy_set(struct kbase_device *kbdev, const char *buf)
 
 	prev_policy = kbase_pm_get_policy(kbdev);
 
-	policy_count = kbase_pm_list_policies(&policy_list);
+	policy_count = kbase_pm_list_policies(kbdev, &policy_list);
 
 	GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "%s: gpu dev_drv name = %s\n", __func__, kbdev->dev->driver->name);
 	GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "%s: gpu prev power policy = %s\n", __func__, prev_policy->name);
