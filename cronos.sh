@@ -22,8 +22,8 @@ CR_TC=/home/miko/Documents/playground/linaro_-_4.9/bin/aarch64-linux-gnu-
 CR_DTS=arch/arm64/boot/dts
 CR_DTB=$CR_DIR/boot.img-dtb
 # Kernel Variables
-CR_VERSION=V1.1.1
-CR_NAME=Quantum_Quack
+CR_VERSION=V1.1.2
+CR_NAME=Quantum_Quackery
 CR_JOBS=5
 CR_ANDROID=p
 CR_PLATFORM=9
