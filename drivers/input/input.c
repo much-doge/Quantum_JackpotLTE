@@ -1119,8 +1119,7 @@ void input_close_device(struct input_handle *handle)
 	mutex_unlock(&dev->mutex);
 }
 EXPORT_SYMBOL(input_close_device);
-
-int input_enable_device(struct input_dev *dev)
+static int input_enable_device(struct input_dev *dev)
 {
 	int retval;
 
@@ -1145,7 +1144,7 @@ out:
 	return retval;
 }
 
-int input_disable_device(struct input_dev *dev)
+static int input_disable_device(struct input_dev *dev)
 {
 	int retval;
 
