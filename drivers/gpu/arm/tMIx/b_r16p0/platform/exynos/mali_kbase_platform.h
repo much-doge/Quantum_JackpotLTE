@@ -46,7 +46,7 @@ do { \
 #define CPU_MAX INT_MAX
 #define DVFS_TABLE_COL_NUM 8
 #define DVFS_TABLE_ROW_MAX 20
-#define OF_DATA_NUM_MAX 160
+#define OF_DATA_NUM_MAX 100
 
 typedef enum {
 	DVFS_DEBUG_START = 0,
@@ -233,7 +233,6 @@ struct exynos_context {
 	int gpu_max_clock;
 	int gpu_max_clock_limit;
 	int gpu_min_clock;
-        int gpu_min_clock_limit;
 	int gpu_dvfs_start_clock;
 	int gpu_dvfs_config_clock;
 	int user_max_lock_input;
@@ -279,17 +278,7 @@ struct exynos_context {
 	int gpu_exception_count[GPU_EXCEPTION_LIST_END];
 	int balance_retry_count[BMAX_RETRY_CNT];
 	gpu_attribute *attrib;
-#ifdef CONFIG_EXYNOS_BTS
 	int mo_min_clock;
-#ifdef CONFIG_EXYNOS9630_BTS
-	unsigned int bts_scen_idx;
-	unsigned int is_set_bts; // Check the pair of bts scenario.
-#endif
-#ifdef CONFIG_MALI_CAMERA_EXT_BTS
-	unsigned int bts_camera_ext_idx;
-	unsigned int is_set_bts_camera_ext;
-#endif
-#endif
 	int *save_cpu_max_freq;
 
 	unsigned int g3d_cmu_cal_id;
@@ -331,14 +320,6 @@ struct exynos_context {
 	bool gpu_bts_support;
 	char g3d_genpd_name[30];
 	int gpu_dss_freq_id;
-
-#if IS_ENABLED(CONFIG_MALI_EXYNOS_SECURE_RENDERING_LEGACY) || IS_ENABLED(CONFIG_MALI_EXYNOS_SECURE_RENDERING_ARM)
-	bool exynos_smc_enabled;
-	spinlock_t exynos_smc_lock;
-#endif
-
-	/* Callback to call when for GPU clock changes */
-	struct notifier_block *nb_clock_change;
 };
 
 struct kbase_device *gpu_get_device_structure(void);
