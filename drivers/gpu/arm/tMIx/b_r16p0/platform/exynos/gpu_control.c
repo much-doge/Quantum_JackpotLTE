@@ -39,11 +39,18 @@
 #include <linux/of.h>
 #endif
 
-extern struct regulator *g3d_m_regulator;
+#ifdef CONFIG_MALI_FTRACE_FREQ
+#include <trace/events/power.h>
+#endif
+
+struct regulator *g3d_regulator;
 unsigned int gpu_pmu_status_reg_offset;
 unsigned int gpu_pmu_status_local_pwr_mask;
 #define EXYNOS_PMU_G3D_STATUS	gpu_pmu_status_reg_offset
 #define LOCAL_PWR_CFG			gpu_pmu_status_local_pwr_mask
+
+unsigned int gpu_min_override = 343000;
+unsigned int gpu_max_override = 1300000;
 
 #ifdef CONFIG_MALI_RT_PM
 static struct exynos_pm_domain *gpu_get_pm_domain(char *g3d_genpd_name)
@@ -165,6 +172,10 @@ static int gpu_set_dvfs_using_calapi(struct exynos_context *platform, int clk)
 
 	platform->cur_clock = cal_dfs_get_rate(platform->g3d_cmu_cal_id);
 
+#ifdef CONFIG_MALI_FTRACE_FREQ
+	trace_gpu_frequency_change(platform->cur_clock);
+#endif
+
 	GPU_LOG(DVFS_DEBUG, LSI_CLOCK_VALUE, clk, platform->cur_clock,
 		"[id: %x] clock set: %d, clock get: %d\n",
 		platform->g3d_cmu_cal_id, clk, platform->cur_clock);
@@ -200,6 +211,13 @@ int gpu_control_set_dvfs(struct kbase_device *kbdev, int clock)
 	}
 #endif
 
+	if (clock) {
+		if (clock < gpu_min_override)
+			clock = gpu_min_override;
+		else if (clock > gpu_max_override)
+			clock = gpu_max_override;
+	}
+
 	is_up = prev_clock < clock;
 
 #ifdef CONFIG_MALI_PM_QOS
@@ -216,6 +234,20 @@ int gpu_control_set_dvfs(struct kbase_device *kbdev, int clock)
 #endif /* CONFIG_MALI_PM_QOS */
 
 	gpu_dvfs_update_time_in_state(prev_clock);
+
+	/*
+	 * We assume there is only one callback registered, and we call it directly.
+	 * We assume there is enough locking already (both here and in the receiving callback)
+	 * This is why we simply call the callback funciton directly
+	 */
+	if (platform->nb_clock_change != NULL) {
+		struct kbase_gpu_clk_notifier_data ndata;
+		ndata.gpu_clk_handle = platform; /* only one clock, we use the platform struct as a fake clock handle */
+		ndata.old_rate = prev_clock;
+		ndata.new_rate = clock;
+		platform->nb_clock_change->notifier_call(platform->nb_clock_change, POST_RATE_CHANGE, &ndata);
+	}
+
 	prev_clock = clock;
 
 	return ret;
@@ -564,7 +596,7 @@ int gpu_asv_calibration_start(void)
 		gpu_asv_cali_wq = create_workqueue("g3d_asv_cali");
 
 		queue_delayed_work_on(0, gpu_asv_cali_wq,
-				&gpu_asv_cali_stop_work, msecs_to_jiffies(15000));	/* 15 second */
+			&gpu_asv_cali_stop_work, msecs_to_jiffies(15000));	/* 15 second */
 }
 
 	return 0;
@@ -575,6 +607,31 @@ int gpu_asv_calibration_start(void)
 
 int gpu_get_cur_voltage(struct exynos_context *platform)
 {
+	int ret = 0;
+#ifdef CONFIG_REGULATOR
+	if (!g3d_regulator) {
+		GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "%s: regulator is not initialized\n", __func__);
+		return -1;
+	}
+
+	ret = regulator_get_voltage(g3d_regulator);
+#endif
+
+	return ret;
+}
+
+int gpu_regulator_init(struct exynos_context *platform)
+{
+#ifdef CONFIG_MALI_DVFS
+	g3d_regulator = regulator_get(NULL, "vdd_g3d");
+	if (IS_ERR(g3d_regulator)) {
+		GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "%s: failed to get vdd_g3d regulator, 0x%p\n", __func__, g3d_regulator);
+		g3d_regulator = NULL;
+		return -1;
+	}
+	GPU_LOG(DVFS_INFO, DUMMY, 0u, 0u, "regulator initialized\n");
+#endif
+
 	return 0;
 }
 int *get_mif_table(int *size)
@@ -601,6 +658,12 @@ int gpu_control_module_init(struct kbase_device *kbdev)
 	if (np != NULL) {
 		gpu_update_config_data_int(np, "gpu_pmu_status_reg_offset", &gpu_pmu_status_reg_offset);
 		gpu_update_config_data_int(np, "gpu_pmu_status_local_pwr_mask", &gpu_pmu_status_local_pwr_mask);
+	}
+#endif
+
+#ifdef CONFIG_REGULATOR
+	if (gpu_regulator_init(platform) < 0) {
+		GPU_LOG(DVFS_ERROR, DUMMY, 0u, 0u, "%s: failed to initialize regulator\n", __func__);
 	}
 #endif
 

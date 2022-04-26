@@ -267,7 +267,26 @@ enum {
  * is enabled the value will be read from there, otherwise this should be
  * overridden by defining GPU_FREQ_KHZ_MAX in the platform file.
  */
-#define DEFAULT_GPU_FREQ_KHZ_MAX (5000)
+#define DEFAULT_GPU_FREQ_KHZ_MAX (1300000)
+
+/**
+ * Default timeout for task execution on an endpoint
+ *
+ * Number of GPU clock cycles before the driver terminates a task that is
+ * making no forward progress on an endpoint (e.g. shader core).
+ * Value chosen is equivalent to the time after which a job is hard stopped
+ * which is 5 seconds (assuming the GPU is usually clocked at ~500 MHZ).
+ */
+#define DEFAULT_PROGRESS_TIMEOUT ((u64)5 * 500 * 1024 * 1024)
+
+/**
+ * Default threshold at which to switch to incremental rendering
+ *
+ * Fraction of the maximum size of an allocation that grows on GPU page fault
+ * that can be used up before the driver switches to incremental rendering,
+ * in 256ths. 0 means disable incremental rendering.
+ */
+#define DEFAULT_IR_THRESHOLD (192)
 
 #endif /* _KBASE_CONFIG_DEFAULTS_H_ */
 

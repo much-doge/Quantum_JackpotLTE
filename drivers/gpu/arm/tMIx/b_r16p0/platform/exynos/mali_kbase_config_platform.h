@@ -22,7 +22,7 @@
  * Attached value: number in kHz
  * Default value: NA
  */
-#define GPU_FREQ_KHZ_MAX (5000)
+#define GPU_FREQ_KHZ_MAX (1300000)
 /**
  * Minimum frequency GPU will be clocked at. Given in kHz.
  * This must be specified as there is no default value.
@@ -30,7 +30,7 @@
  * Attached value: number in kHz
  * Default value: NA
  */
-#define GPU_FREQ_KHZ_MIN (5000)
+#define GPU_FREQ_KHZ_MIN (343000)
 
 /**
  * CPU_SPEED_FUNC - A pointer to a function that calculates the CPU clock
@@ -85,7 +85,13 @@ extern struct kbase_platform_funcs_conf platform_funcs;
  *
  * Attached value: pointer to @ref kbase_secure_ops
  */
-#ifdef CONFIG_MALI_EXYNOS_SECURE_RENDERING
+#if IS_ENABLED(CONFIG_MALI_EXYNOS_SECURE_RENDERING_LEGACY)
 #define PROTECTED_CALLBACKS (&exynos_protected_ops)
 extern struct protected_mode_ops exynos_protected_ops;
+#elif IS_ENABLED(CONFIG_MALI_EXYNOS_SECURE_RENDERING_ARM)
+#define PROTECTED_CALLBACKS (&exynos_protected_ops_arm)
+extern struct protected_mode_ops exynos_protected_ops_arm;
 #endif
+
+#define CLK_RATE_TRACE_OPS (&clk_rate_trace_ops)
+extern struct kbase_clk_rate_trace_op_conf clk_rate_trace_ops;
