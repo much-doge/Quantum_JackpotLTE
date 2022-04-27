@@ -1447,3 +1447,4 @@ static int __init exynos_cpufreq_init(void)
 	return ret;
 }
 device_initcall(exynos_cpufreq_init);
+

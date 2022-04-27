@@ -23,6 +23,16 @@
 
 #include "exynos-acme.h"
 
+struct exynos_ufc_req {
+        int                     last_min_input;
+        int                     last_min_wo_boost_input;
+        int                     last_max_input;
+} ufc_req = {
+	.last_min_input = -1,
+	.last_min_wo_boost_input = -1,
+	.last_max_input = -1,
+};
+
 /*********************************************************************
  *                          SYSFS INTERFACES                         *
  *********************************************************************/
