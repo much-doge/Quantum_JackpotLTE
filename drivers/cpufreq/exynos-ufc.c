@@ -68,54 +68,7 @@ static ssize_t show_cpufreq_table(struct kobject *kobj,
 static ssize_t show_cpufreq_min_limit(struct kobject *kobj,
 				struct kobj_attribute *attr, char *buf)
 {
-	struct list_head *domains = get_domain_list();
-	struct exynos_cpufreq_domain *domain;
-	unsigned int pm_qos_min;
-	int scale = -1;
-
-	if (ap_fuse == 2)
-		scale++;
-
-	list_for_each_entry_reverse(domain, domains, list) {
-		scale++;
-
-#ifdef CONFIG_SCHED_HMP
-		/*
-		 * In HMP architecture, last domain is big.
-		 * If HMP boost is not activated, PM QoS value of
-		 * big is not shown.
-		 */
-		if (domain == last_domain() && !get_hmp_boost())
-#ifdef CONFIG_SCHED_HMP_SELECTIVE_BOOST_WITH_NITP
-		if (!get_hmp_selective_boost())
-#endif
-			continue;
-#endif
-
-		/* get value of minimum PM QoS */
-		pm_qos_min = pm_qos_request(domain->pm_qos_min_class);
-		if (pm_qos_min > 0) {
-			pm_qos_min = min(pm_qos_min, domain->max_freq);
-			pm_qos_min = max(pm_qos_min, domain->min_freq);
-
-			/*
-			 * To manage frequencies of all domains at once,
-			 * scale down frequency as multiple of 4.
-			 * ex) domain2 = freq
-			 *     domain1 = freq /4
-			 *     domain0 = freq /16
-			 */
-			pm_qos_min = pm_qos_min >> (scale * SCALE_SIZE);
-			return snprintf(buf, 10, "%u\n", pm_qos_min);
-		}
-	}
-
-	/*
-	 * If there is no QoS at all domains, it returns minimum
-	 * frequency of last domain
-	 */
-	return snprintf(buf, 10, "%u\n",
-		first_domain()->min_freq >> (scale * SCALE_SIZE));
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_min_input);
 }
 
 #ifdef CONFIG_SCHED_HMP
@@ -167,6 +120,8 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 		pr_err("failed to get domains!\n");
 		return -ENXIO;
 	}
+
+	ufc_req.last_min_input = input;
 
 	list_for_each_entry_reverse(domain, domains, list) {
 		struct exynos_ufc *ufc, *r_ufc = NULL, *r_ufc_32 = NULL;
@@ -264,6 +219,12 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 	return count;
 }
 
+static ssize_t show_cpufreq_min_limit_wo_boost(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_min_wo_boost_input);
+}
+
 static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 				struct kobj_attribute *attr, const char *buf,
 				size_t count)
@@ -289,6 +250,8 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 		pr_err("failed to get domains!\n");
 		return -ENXIO;
 	}
+
+	ufc_req.last_min_wo_boost_input = input;
 
 	list_for_each_entry_reverse(domain, domains, list) {
 		struct exynos_ufc *ufc, *r_ufc = NULL, *r_ufc_32 = NULL;
@@ -380,46 +343,7 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 static ssize_t show_cpufreq_max_limit(struct kobject *kobj,
 				struct kobj_attribute *attr, char *buf)
 {
-	struct list_head *domains = get_domain_list();
-	struct exynos_cpufreq_domain *domain;
-	unsigned int pm_qos_max;
-	int scale = -1;
-
-	if (ap_fuse == 2)
-		scale++;
-
-	if (!domains) {
-		pr_err("failed to get domains!\n");
-		return -ENXIO;
-	}
-
-	list_for_each_entry_reverse(domain, domains, list) {
-		scale++;
-
-		/* get value of minimum PM QoS */
-		pm_qos_max = pm_qos_request(domain->pm_qos_max_class);
-		if (pm_qos_max > 0) {
-			pm_qos_max = min(pm_qos_max, domain->max_freq);
-			pm_qos_max = max(pm_qos_max, domain->min_freq);
-
-			/*
-			 * To manage frequencies of all domains at once,
-			 * scale down frequency as multiple of 4.
-			 * ex) domain2 = freq
-			 *     domain1 = freq /4
-			 *     domain0 = freq /16
-			 */
-			pm_qos_max = pm_qos_max >> (scale * SCALE_SIZE);
-			return snprintf(buf, 10, "%u\n", pm_qos_max);
-		}
-	}
-
-	/*
-	 * If there is no QoS at all domains, it returns minimum
-	 * frequency of last domain
-	 */
-	return snprintf(buf, 10, "%u\n",
-		first_domain()->min_freq >> (scale * SCALE_SIZE));
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_max_input);
 }
 
 struct pm_qos_request cpu_online_max_qos_req;
@@ -554,6 +478,7 @@ static ssize_t store_cpufreq_max_limit(struct kobject *kobj, struct kobj_attribu
 	if (sscanf(buf, "%8d", &input) < 1)
 		return -EINVAL;
 
+	ufc_req.last_max_input = input;
 	last_max_limit = input;
 	cpufreq_max_limit_update(input);
 
@@ -593,7 +518,7 @@ __ATTR(cpufreq_min_limit, 0644,
 		show_cpufreq_min_limit, store_cpufreq_min_limit);
 static struct kobj_attribute cpufreq_min_limit_wo_boost =
 __ATTR(cpufreq_min_limit_wo_boost, 0644,
-		show_cpufreq_min_limit, store_cpufreq_min_limit_wo_boost);
+		show_cpufreq_min_limit_wo_boost, store_cpufreq_min_limit_wo_boost);
 static struct kobj_attribute cpufreq_max_limit =
 __ATTR(cpufreq_max_limit, 0644,
 		show_cpufreq_max_limit, store_cpufreq_max_limit);
@@ -890,3 +815,4 @@ exit:
 	return 0;
 }
 late_initcall(exynos_ufc_init);
+
