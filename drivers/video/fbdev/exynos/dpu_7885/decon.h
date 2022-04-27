@@ -51,7 +51,7 @@ extern struct decon_bts_ops decon_bts_control;
 #define DECON_ENTER_LPD_CNT	3
 #define MIN_BLK_MODE_WIDTH	144
 #define MIN_BLK_MODE_HEIGHT	16
-#define VSYNC_TIMEOUT_MSEC	15000
+#define VSYNC_TIMEOUT_MSEC	60000
 #define DEFAULT_BPP		32
 
 #define MAX_DECON_WIN		4
