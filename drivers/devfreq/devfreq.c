@@ -1127,7 +1127,7 @@ static ssize_t available_frequencies_show(struct device *d,
 	return count;
 }
 static DEVICE_ATTR_RO(available_frequencies);
-static ssize_t volt_show(struct device *d,
+/*static ssize_t volt_show(struct device *d,
 					  struct device_attribute *attr,
 					  char *buf)
 {
@@ -1139,7 +1139,7 @@ static ssize_t volt_show(struct device *d,
 	ssize_t count = 0;
 	unsigned long freq = 0;
 	int i=0;
-	rcu_read_lock();
+	rcu_read_lock();*/
 /*
 	for (i = 0; i < data->max_state; i++) {
 		freq = data->opp_list[i].freq;
@@ -1154,7 +1154,7 @@ static ssize_t volt_show(struct device *d,
 		} else {
 			dev_info(data->dev, "DEVFREQ : %8uKhz, %8uuV\n", freq, volt);
 		}*/
-	do {
+	/*do {
 		volt2 = data->opp_list[i].volt;
 		opp = dev_pm_opp_find_freq_ceil(dev, &freq);
 		if (IS_ERR(opp))
@@ -1164,17 +1164,17 @@ static ssize_t volt_show(struct device *d,
 				   "%lu %d\n", freq,volt2);
 		freq++;i++;
 	} while (1);
-	rcu_read_unlock();
+	rcu_read_unlock();*/
 
 	/* Truncate the trailing space */
-	if (count)
+	/*if (count)
 		count--;
 
 	count += sprintf(&buf[count], "\n");
 
 	return count;
 }
-static DEVICE_ATTR_RO(volt);
+static DEVICE_ATTR_RO(volt);*/
 static ssize_t trans_stat_show(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -1253,7 +1253,7 @@ static struct attribute *devfreq_attrs[] = {
 	&dev_attr_max_freq.attr,
 	&dev_attr_trans_stat.attr,
 	&dev_attr_time_in_state.attr,
-	&dev_attr_volt.attr,
+	/*&dev_attr_volt.attr,*/
 	NULL,
 };
 ATTRIBUTE_GROUPS(devfreq);
