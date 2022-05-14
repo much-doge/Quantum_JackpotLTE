@@ -19,8 +19,19 @@
 #include <linux/pm_opp.h>
 
 #include <soc/samsung/exynos-cpu_hotplug.h>
+#include <soc/samsung/cal-if.h>
 
 #include "exynos-acme.h"
+
+struct exynos_ufc_req {
+        int                     last_min_input;
+        int                     last_min_wo_boost_input;
+        int                     last_max_input;
+} ufc_req = {
+	.last_min_input = -1,
+	.last_min_wo_boost_input = -1,
+	.last_max_input = -1,
+};
 
 /*********************************************************************
  *                          SYSFS INTERFACES                         *
@@ -67,54 +78,7 @@ static ssize_t show_cpufreq_table(struct kobject *kobj,
 static ssize_t show_cpufreq_min_limit(struct kobject *kobj,
 				struct kobj_attribute *attr, char *buf)
 {
-	struct list_head *domains = get_domain_list();
-	struct exynos_cpufreq_domain *domain;
-	unsigned int pm_qos_min;
-	int scale = -1;
-
-	if (ap_fuse == 2)
-		scale++;
-
-	list_for_each_entry_reverse(domain, domains, list) {
-		scale++;
-
-#ifdef CONFIG_SCHED_HMP
-		/*
-		 * In HMP architecture, last domain is big.
-		 * If HMP boost is not activated, PM QoS value of
-		 * big is not shown.
-		 */
-		if (domain == last_domain() && !get_hmp_boost())
-#ifdef CONFIG_SCHED_HMP_SELECTIVE_BOOST_WITH_NITP
-		if (!get_hmp_selective_boost())
-#endif
-			continue;
-#endif
-
-		/* get value of minimum PM QoS */
-		pm_qos_min = pm_qos_request(domain->pm_qos_min_class);
-		if (pm_qos_min > 0) {
-			pm_qos_min = min(pm_qos_min, domain->max_freq);
-			pm_qos_min = max(pm_qos_min, domain->min_freq);
-
-			/*
-			 * To manage frequencies of all domains at once,
-			 * scale down frequency as multiple of 4.
-			 * ex) domain2 = freq
-			 *     domain1 = freq /4
-			 *     domain0 = freq /16
-			 */
-			pm_qos_min = pm_qos_min >> (scale * SCALE_SIZE);
-			return snprintf(buf, 10, "%u\n", pm_qos_min);
-		}
-	}
-
-	/*
-	 * If there is no QoS at all domains, it returns minimum
-	 * frequency of last domain
-	 */
-	return snprintf(buf, 10, "%u\n",
-		first_domain()->min_freq >> (scale * SCALE_SIZE));
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_min_input);
 }
 
 #ifdef CONFIG_SCHED_HMP
@@ -167,6 +131,8 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 		return -ENXIO;
 	}
 
+	ufc_req.last_min_input = input;
+
 	list_for_each_entry_reverse(domain, domains, list) {
 		struct exynos_ufc *ufc, *r_ufc = NULL, *r_ufc_32 = NULL;
 		struct cpufreq_policy *policy = NULL;
@@ -193,14 +159,14 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 		scale++;
 
 		if (set_limit) {
-			req_limit_freq = min(req_limit_freq, domain->max_freq);
+			req_limit_freq = min(req_limit_freq, (unsigned int)cal_dfs_get_max_freq(domain->cal_id));
 			pm_qos_update_request(&domain->user_min_qos_req, req_limit_freq);
 			set_limit = false;
 			continue;
 		}
 
 		if (set_max) {
-			unsigned int qos = domain->max_freq;
+			unsigned int qos = cal_dfs_get_max_freq(domain->cal_id);
 
 			if (domain->user_default_qos)
 				qos = domain->user_default_qos;
@@ -245,7 +211,7 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 				set_limit = true;
 		}
 
-		freq = min(freq, domain->max_freq);
+		freq = min(freq, (unsigned int)cal_dfs_get_max_freq(domain->cal_id));
 		pm_qos_update_request(&domain->user_min_qos_req, freq);
 
 		/*
@@ -261,6 +227,12 @@ static ssize_t store_cpufreq_min_limit(struct kobject *kobj,
 	}
 
 	return count;
+}
+
+static ssize_t show_cpufreq_min_limit_wo_boost(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_min_wo_boost_input);
 }
 
 static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
@@ -289,6 +261,8 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 		return -ENXIO;
 	}
 
+	ufc_req.last_min_wo_boost_input = input;
+
 	list_for_each_entry_reverse(domain, domains, list) {
 		struct exynos_ufc *ufc, *r_ufc = NULL, *r_ufc_32 = NULL;
 		struct cpufreq_policy *policy = NULL;
@@ -315,14 +289,14 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 		scale++;
 
 		if (set_limit) {
-			req_limit_freq = min(req_limit_freq, domain->max_freq);
+			req_limit_freq = min(req_limit_freq, (unsigned int)cal_dfs_get_max_freq(domain->cal_id));
 			pm_qos_update_request(&domain->user_min_qos_req, req_limit_freq);
 			set_limit = false;
 			continue;
 		}
 
 		if (set_max) {
-			unsigned int qos = domain->max_freq;
+			unsigned int qos = cal_dfs_get_max_freq(domain->cal_id);
 
 			if (domain->user_default_qos)
 				qos = domain->user_default_qos;
@@ -366,7 +340,7 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 				set_limit = true;
 		}
 
-		freq = min(freq, domain->max_freq);
+		freq = min(freq, (unsigned int)cal_dfs_get_max_freq(domain->cal_id));
 		pm_qos_update_request(&domain->user_min_qos_wo_boost_req, freq);
 
 		set_max = true;
@@ -379,46 +353,7 @@ static ssize_t store_cpufreq_min_limit_wo_boost(struct kobject *kobj,
 static ssize_t show_cpufreq_max_limit(struct kobject *kobj,
 				struct kobj_attribute *attr, char *buf)
 {
-	struct list_head *domains = get_domain_list();
-	struct exynos_cpufreq_domain *domain;
-	unsigned int pm_qos_max;
-	int scale = -1;
-
-	if (ap_fuse == 2)
-		scale++;
-
-	if (!domains) {
-		pr_err("failed to get domains!\n");
-		return -ENXIO;
-	}
-
-	list_for_each_entry_reverse(domain, domains, list) {
-		scale++;
-
-		/* get value of minimum PM QoS */
-		pm_qos_max = pm_qos_request(domain->pm_qos_max_class);
-		if (pm_qos_max > 0) {
-			pm_qos_max = min(pm_qos_max, domain->max_freq);
-			pm_qos_max = max(pm_qos_max, domain->min_freq);
-
-			/*
-			 * To manage frequencies of all domains at once,
-			 * scale down frequency as multiple of 4.
-			 * ex) domain2 = freq
-			 *     domain1 = freq /4
-			 *     domain0 = freq /16
-			 */
-			pm_qos_max = pm_qos_max >> (scale * SCALE_SIZE);
-			return snprintf(buf, 10, "%u\n", pm_qos_max);
-		}
-	}
-
-	/*
-	 * If there is no QoS at all domains, it returns minimum
-	 * frequency of last domain
-	 */
-	return snprintf(buf, 10, "%u\n",
-		first_domain()->min_freq >> (scale * SCALE_SIZE));
+	return snprintf(buf, PAGE_SIZE, "%d\n", ufc_req.last_max_input);
 }
 
 struct pm_qos_request cpu_online_max_qos_req;
@@ -553,6 +488,7 @@ static ssize_t store_cpufreq_max_limit(struct kobject *kobj, struct kobj_attribu
 	if (sscanf(buf, "%8d", &input) < 1)
 		return -EINVAL;
 
+	ufc_req.last_max_input = input;
 	last_max_limit = input;
 	cpufreq_max_limit_update(input);
 
@@ -592,7 +528,7 @@ __ATTR(cpufreq_min_limit, 0644,
 		show_cpufreq_min_limit, store_cpufreq_min_limit);
 static struct kobj_attribute cpufreq_min_limit_wo_boost =
 __ATTR(cpufreq_min_limit_wo_boost, 0644,
-		show_cpufreq_min_limit, store_cpufreq_min_limit_wo_boost);
+		show_cpufreq_min_limit_wo_boost, store_cpufreq_min_limit_wo_boost);
 static struct kobj_attribute cpufreq_max_limit =
 __ATTR(cpufreq_max_limit, 0644,
 		show_cpufreq_max_limit, store_cpufreq_max_limit);
@@ -721,6 +657,55 @@ static int __init init_ufc_table_dt(struct exynos_cpufreq_domain *domain,
 
 			if (freq == CPUFREQ_ENTRY_INVALID)
 				continue;
+			
+			if(ufc->info.ctrl_type==0)
+			{
+				if(freq==2496000||freq==2392000||freq==2288000)
+					ufc->info.freq_table[index].limit_freq=1898000;
+				if(freq==2184000)
+					ufc->info.freq_table[index].limit_freq=1794000;
+				if(freq==2080000||freq==1976000)
+					ufc->info.freq_table[index].limit_freq=1690000;
+				if(freq==1872000||freq==1768000)
+					ufc->info.freq_table[index].limit_freq=1248000;
+				if(freq==520000)
+					ufc->info.freq_table[index].limit_freq=757000;
+				if(freq==312000||freq==208000)
+					ufc->info.freq_table[index].limit_freq=676000;
+				if(freq==208000)
+					ufc->info.freq_table[index].limit_freq=546000;
+			}
+			if(ufc->info.ctrl_type==2)
+			{
+				if(freq==2496000||freq==2392000||freq==2288000)
+					ufc->info.freq_table[index].limit_freq=1898000;
+				if(freq==2184000)
+					ufc->info.freq_table[index].limit_freq=1794000;
+				if(freq==2080000||freq==1976000)
+					ufc->info.freq_table[index].limit_freq=1690000;
+				if(freq==1872000||freq==1768000)
+					ufc->info.freq_table[index].limit_freq=1586000;
+				if(freq==1664000)
+					ufc->info.freq_table[index].limit_freq=1482000;
+				if(freq==1560000)
+					ufc->info.freq_table[index].limit_freq=1352000;
+				if(freq==1352000)
+					ufc->info.freq_table[index].limit_freq=1248000;
+				if(freq==1144000)
+					ufc->info.freq_table[index].limit_freq=1144000;
+				if(freq==1352000)
+					ufc->info.freq_table[index].limit_freq=1014000;
+				if(freq==936000)
+					ufc->info.freq_table[index].limit_freq=902000;
+				if(freq==728000)
+					ufc->info.freq_table[index].limit_freq=839000;
+				if(freq==520000)
+					ufc->info.freq_table[index].limit_freq=757000;
+				if(freq==312000)
+					ufc->info.freq_table[index].limit_freq=676000;
+				if(freq==208000)
+					ufc->info.freq_table[index].limit_freq=546000;
+			}
 
 			for (c_index = 0; c_index < size / 2; c_index++) {
 				if (freq <= table[c_index].master_freq)
@@ -728,10 +713,60 @@ static int __init init_ufc_table_dt(struct exynos_cpufreq_domain *domain,
 
 				if (freq >= table[c_index].master_freq)
 					break;
+				
+				if(ufc->info.ctrl_type==0)
+				{
+					if(freq==2496000||freq==2392000||freq==2288000)
+						ufc->info.freq_table[index].limit_freq=1898000;
+					if(freq==2184000)
+						ufc->info.freq_table[index].limit_freq=1794000;
+					if(freq==2080000||freq==1976000)
+						ufc->info.freq_table[index].limit_freq=1690000;
+					if(freq==1872000||freq==1768000)
+						ufc->info.freq_table[index].limit_freq=1248000;
+					if(freq==520000)
+						ufc->info.freq_table[index].limit_freq=757000;
+					if(freq==312000||freq==208000)
+						ufc->info.freq_table[index].limit_freq=676000;
+					if(freq==208000)
+						ufc->info.freq_table[index].limit_freq=546000;
+				}
+				if(ufc->info.ctrl_type==2)
+				{
+					if(freq==2496000||freq==2392000||freq==2288000)
+						ufc->info.freq_table[index].limit_freq=1898000;
+					if(freq==2184000)
+						ufc->info.freq_table[index].limit_freq=1794000;
+					if(freq==2080000||freq==1976000)
+						ufc->info.freq_table[index].limit_freq=1690000;
+					if(freq==1872000||freq==1768000)
+						ufc->info.freq_table[index].limit_freq=1586000;
+					if(freq==1664000)
+						ufc->info.freq_table[index].limit_freq=1482000;
+					if(freq==1560000)
+						ufc->info.freq_table[index].limit_freq=1352000;
+					if(freq==1352000)
+						ufc->info.freq_table[index].limit_freq=1248000;
+					if(freq==1144000)
+						ufc->info.freq_table[index].limit_freq=1144000;
+					if(freq==1352000)
+						ufc->info.freq_table[index].limit_freq=1014000;
+					if(freq==936000)
+						ufc->info.freq_table[index].limit_freq=902000;
+					if(freq==728000)
+						ufc->info.freq_table[index].limit_freq=839000;
+					if(freq==520000)
+						ufc->info.freq_table[index].limit_freq=757000;
+					if(freq==312000)
+						ufc->info.freq_table[index].limit_freq=676000;
+					if(freq==208000)
+						ufc->info.freq_table[index].limit_freq=546000;
+				}
 			}
-			pr_info("Master_freq : %u kHz - limit_freq : %u kHz\n",
-					ufc->info.freq_table[index].master_freq,
-					ufc->info.freq_table[index].limit_freq);
+			/* Not needed anymore. Only for debugging purposes
+			pr_info("  Freq : %u kHz , Limit_freq : %u kHz, topser_UFC\n",
+					freq,ufc->info.freq_table[index].limit_freq);
+			*/
 		}
 		kfree(table);
 	}
