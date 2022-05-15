@@ -1807,22 +1807,22 @@ static int ect_dump_minlock(struct seq_file *s, void *data)
 			if (i==0){
 			if(domain->level[j].main_frequencies==1768000)
 				domain->level[j].sub_frequencies=533000; 
-			/*if(domain->level[j].main_frequencies==1664000)
+			if(domain->level[j].main_frequencies==1664000)
 				domain->level[j].sub_frequencies=333000; 
 			if(domain->level[j].main_frequencies==1560000) 
 				domain->level[j].sub_frequencies=267000;
 			if(domain->level[j].main_frequencies==1352000) 
-				domain->level[j].sub_frequencies=107000; */
+				domain->level[j].sub_frequencies=107000; 
 			}
 			//for litte
-			//if (i==1){
-		//	if(domain->level[j].main_frequencies==1352000) 
-			//	domain->level[j].sub_frequencies=333000; //267
-			//if(domain->level[j].main_frequencies==1248000)
-			//	domain->level[j].sub_frequencies=107000; //107
-			//if(domain->level[j].main_frequencies==1144000) 
-			//	domain->level[j].sub_frequencies=133000; //107
-			//}
+			if (i==1){
+			if(domain->level[j].main_frequencies==1352000) 
+				domain->level[j].sub_frequencies=333000; //267
+			if(domain->level[j].main_frequencies==1248000)
+				domain->level[j].sub_frequencies=107000; //107
+			if(domain->level[j].main_frequencies==1144000) 
+				domain->level[j].sub_frequencies=133000; //107
+			}
 			//for gpu
 			if (i==2){
 			if(domain->level[j].main_frequencies==1001000)
