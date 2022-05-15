@@ -158,12 +158,12 @@ static int exynos7885_mif_constraint_parse(struct exynos_devfreq_data *data,
 #ifdef CONFIG_EXYNOS_DVFS_MANAGER
 		if (const_flag) {
 			if(const_table[use_level].master_freq==1794000)
-				const_table[use_level].constraint_freq==533000;
+				/*const_table[use_level].constraint_freq==533000;*/
 			const_table[use_level].master_freq = data->opp_list[i].freq;
 			const_table[use_level].constraint_freq
 				= ect_find_constraint_freq(ect_domain, data->opp_list[i].freq);
 			if(const_table[use_level].master_freq==1794000)
-				const_table[use_level].constraint_freq==533000;
+				/*const_table[use_level].constraint_freq==533000;*/
 			config.cmd[3] = const_table[use_level].constraint_freq;
 		}
 #endif
