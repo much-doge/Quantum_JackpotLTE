@@ -1624,6 +1624,7 @@ static void decon_update_regs(struct decon_device *decon,
 			decon_simple_notifier_call_chain(FB_EARLY_EVENT_BLANK, FB_BLANK_POWERDOWN);
 			decon_disable(decon);
 			decon_simple_notifier_call_chain(FB_EVENT_BLANK, FB_BLANK_POWERDOWN);
+			pr_info("FUCK THIS ASSHOLE ASSCRAP BUG FUCKING SHIT DAMMIT CUNT");
 #ifdef CONFIG_LOGGING_BIGDATA_BUG
 			log_decon_bigdata(decon);
 #endif
