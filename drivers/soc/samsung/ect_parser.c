@@ -558,6 +558,8 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		ect_parse_integer(&address, &range->max_frequency);
 		//for big
 		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
+			range->max_frequency=2392000;
+		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
 			range->max_frequency=2288000;
 		if(range->lower_bound_temperature==76&&range->max_frequency==1768000)
 			range->max_frequency=2184000;
@@ -568,6 +570,8 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		if(range->lower_bound_temperature==91&&range->max_frequency==728000)
 			range->max_frequency=1768000;
 		//for litte
+		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
+			range->max_frequency=1898000; //
 		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
 			range->max_frequency=1794000; //
 		if(range->lower_bound_temperature==76&&range->max_frequency==1690000)
