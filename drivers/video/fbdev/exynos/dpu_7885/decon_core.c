@@ -1615,7 +1615,7 @@ static void decon_update_regs(struct decon_device *decon,
 		/* ESD: Do not check frame done */
 		usleep_range(17000, 18000);
 #endif
-	} else {
+	} /*else {
 		decon->frame_cnt_target = decon->frame_cnt + 1;
 		decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC);
 		decon_wait_for_vstatus(decon, 50);
@@ -1625,7 +1625,7 @@ static void decon_update_regs(struct decon_device *decon,
 			log_decon_bigdata(decon);
 #endif
 			BUG();
-		}
+		}*/
 
 		if (decon->dt.out_type == DECON_OUT_DSI && atomic_read(&decon->ffu_flag)) {
 			if (regs->num_of_window) {
