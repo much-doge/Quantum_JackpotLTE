@@ -1620,12 +1620,12 @@ static void decon_update_regs(struct decon_device *decon,
 		decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC);
 		decon_wait_for_vstatus(decon, 50);
 		if (decon_reg_wait_for_update_timeout(decon->id, SHADOW_UPDATE_TIMEOUT) < 0 && !decon->ignore_vsync) {
-			/*decon_dump(decon);*/
-			decon_simple_notifier_call_chain(FB_EARLY_EVENT_BLANK, FB_BLANK_POWERDOWN);
+			/*decon_simple_notifier_call_chain(FB_EARLY_EVENT_BLANK, FB_BLANK_POWERDOWN);
 			decon_disable(decon);
 			decon_simple_notifier_call_chain(FB_EVENT_BLANK, FB_BLANK_POWERDOWN);
-			decon_enable(decon);
+			decon_enable(decon);*/
 			pr_info("ASU BANGSAT OPO MENEH IKI COK");
+			decon_dump(decon);
 #ifdef CONFIG_LOGGING_BIGDATA_BUG
 			log_decon_bigdata(decon);
 #endif
