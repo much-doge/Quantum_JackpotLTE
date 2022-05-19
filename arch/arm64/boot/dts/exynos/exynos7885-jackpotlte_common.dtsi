@@ -741,6 +741,18 @@
 		};
 	};
 
+	reserved_memory {
+		video_frame {
+			compatible = "exynos8890-ion,vframe";
+		 	ion,secure;
+		 	ion,reusable;
+		 	size = <0x2800000>;
+		 	id = <5>;
+		 	compat-id = <26 29>;
+		 	alignment = <0x0 0x00400000>;
+		};
+	};
+
 	dwmmc2@13550000 {
 		status = "okay";
 		num-slots = <1>;
