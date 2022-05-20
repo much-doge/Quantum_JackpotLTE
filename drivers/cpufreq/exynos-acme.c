@@ -987,6 +987,8 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 			}
 			if (domain->id==1)
 			{
+				if (freq==2496000)
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
 				if (freq==2392000)
 					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
 				if (freq==2288000)
@@ -1180,7 +1182,7 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 		domain->boot_freq=domain->max_freq = 1794000; //2002 1898 1794 1690...449 343 208
 		domain->min_freq = 208000;//2002 1898 1794 1690...449 343 208
 	} else if (domain->id == 1) {
-		domain->boot_freq=domain->max_freq = 2288000; //2496 2392 2288 2184....728 520 312 208
+		domain->boot_freq=domain->max_freq = 2392000; //2496 2392 2288 2184....728 520 312 208
 		domain->min_freq = 208000; //2496 2392 2288 2184....728 520 312 208
 	}
 
