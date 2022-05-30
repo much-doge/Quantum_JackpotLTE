@@ -264,10 +264,6 @@ err_pll_list_allocation:
 	return ret;
 }
 
-static int always_enable = 1;
-static int big_bypass_frequency = 2392000;
-static int little_bypass_frequency = 1794000;
-
 static int ect_parse_voltage_table(int parser_version, void **address, struct ect_voltage_domain *domain, struct ect_voltage_table *table)
 {
 	int num_of_data = domain->num_of_group * domain->num_of_level;
@@ -280,7 +276,6 @@ static int ect_parse_voltage_table(int parser_version, void **address, struct ec
 
 		table->level_en = *address;
 		*address += sizeof(int32_t) * domain->num_of_level;
-		table->level_en = &always_enable;
 	} else {
 		table->boot_level_idx = -1;
 		table->resume_level_idx = -1;
@@ -561,21 +556,39 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		ect_parse_integer(&address, &range->lower_bound_temperature);
 		ect_parse_integer(&address, &range->upper_bound_temperature);
 		ect_parse_integer(&address, &range->max_frequency);
-
-		//for big cores
-		if (range->max_frequency == 2496000||range->max_frequency == 2392000||range->max_frequency == 2288000)
-			range->max_frequency = big_bypass_frequency;
-		else if (range->max_frequency == 2184000||range->max_frequency == 2080000||range->max_frequency == 1976000)
-			range->max_frequency = big_bypass_frequency;
-		else if (range->max_frequency == 1872000||range->max_frequency == 1768000||range->max_frequency == 1664000)
-			range->max_frequency = big_bypass_frequency;
-		else if (range->max_frequency == 1560000||range->max_frequency == 728000)
-			range->max_frequency = big_bypass_frequency;
-		//for little cores
-		else if (range->max_frequency == 1794000||range->max_frequency == 1690000||range->max_frequency == 1586000)
-			range->max_frequency = little_bypass_frequency;
-		else if (range->max_frequency == 1482000||range->max_frequency == 1352000||range->max_frequency == 1144000)
-			range->max_frequency = little_bypass_frequency;
+		//for big
+		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
+			range->max_frequency=2496000;		
+		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
+			range->max_frequency=2392000;
+		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
+			range->max_frequency=2288000;
+		if(range->lower_bound_temperature==76&&range->max_frequency==1768000)
+			range->max_frequency=2184000;
+		if(range->lower_bound_temperature==81&&range->max_frequency==1768000)
+			range->max_frequency=2080000;
+		if(range->lower_bound_temperature==86&&range->max_frequency==1560000)
+			range->max_frequency=1872000;
+		if(range->lower_bound_temperature==91&&range->max_frequency==728000)
+			range->max_frequency=1768000;
+		//for litte
+		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
+			range->max_frequency=1898000; //
+		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
+			range->max_frequency=1794000; //
+		if(range->lower_bound_temperature==76&&range->max_frequency==1690000)
+			range->max_frequency=1690000;
+		if(range->lower_bound_temperature==81&&range->max_frequency==1690000)
+			range->max_frequency=1586000;
+		if(range->lower_bound_temperature==86&&range->max_frequency==1586000)
+			range->max_frequency=1482000;
+		//for gpu
+		if(range->lower_bound_temperature==20&&range->max_frequency==1100000)
+			range->max_frequency=1300000;
+		if(range->lower_bound_temperature==76&&range->max_frequency==1100000)
+			range->max_frequency=1200000;
+		if(range->lower_bound_temperature==81&&range->max_frequency==1100000)
+			range->max_frequency=1100000;
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
 	}
