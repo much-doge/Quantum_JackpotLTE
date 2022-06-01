@@ -988,15 +988,15 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 			if (domain->id==1)
 			{
 				if (freq==2496000)
-					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=533000;
 				if (freq==2392000)
-					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=533000;
 				if (freq==2288000)
-					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=533000;
 				if (freq==2184000)
-					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=533000;
 				if (freq==2080000)
-					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=533000;
 			}
 				valid_row = true;
 				break;
