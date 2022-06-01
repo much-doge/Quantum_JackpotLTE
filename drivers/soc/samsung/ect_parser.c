@@ -582,13 +582,6 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 			range->max_frequency=1586000;
 		if(range->lower_bound_temperature==86&&range->max_frequency==1586000)
 			range->max_frequency=1482000;
-		//for gpu
-		if(range->lower_bound_temperature==20&&range->max_frequency==1100000)
-			range->max_frequency=1300000;
-		if(range->lower_bound_temperature==76&&range->max_frequency==1100000)
-			range->max_frequency=1200000;
-		if(range->lower_bound_temperature==81&&range->max_frequency==1100000)
-			range->max_frequency=1100000;
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
 	}
