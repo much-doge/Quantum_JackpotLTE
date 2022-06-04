@@ -855,8 +855,8 @@ static __init int init_table(struct exynos_cpufreq_domain *domain)
 		else {
 			domain->freq_table[index].frequency = table[index];
 			/* Add OPP table to first cpu of domain */
-			if(table[index]==1794)
-				volt_table[index]=1043750;
+			//if(table[index]==1794)
+			//	volt_table[index]=1043750;
 			dev_pm_opp_add(get_cpu_device(cpumask_first(&domain->cpus)),
 					table[index] * 1000, volt_table[index]);
 		}
@@ -976,6 +976,8 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 			//for minlock
 			if (domain->id==0)
 			{
+				if (freq==2002000)
+					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
 				if (freq==1898000)
 					dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies=333000;
 				if (freq==1794000)
