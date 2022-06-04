@@ -218,40 +218,49 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				/*Undervolt little cores by 25000uV and 12500 for table 10*/
-				fv_table->table[0].volt=1143750; 	//freq=2002 1168750
-				fv_table->table[1].volt=1106250; 	//freq=1898 1131250
-				fv_table->table[2].volt=1018750; 	//freq=1794 1043750
-				fv_table->table[3].volt=1006250; 	//freq=1690 1031250
-				fv_table->table[4].volt=1006250; 	//freq=1586 1031250
-				fv_table->table[5].volt=962500; 	//freq=1482 987500
-				fv_table->table[6].volt=906250; 	//freq=1352 931250
-				fv_table->table[7].volt=868750; 	//freq=1248 893750
-				fv_table->table[8].volt=831250; 	//freq=1144 856250
-				fv_table->table[9].volt=781250; 	//freq=1014 806250
-				fv_table->table[10].volt=756250; 	//freq=902  768750
-				//fv_table->table[15].volt=593750;
-				//fv_table->table[16].volt=587500;
+				/*Undervolt little cores*/
+				fv_table->table[0].volt=1018750; 	//freq=2002 1168750
+				fv_table->table[1].volt=981250; 	//freq=1898 1131250
+				fv_table->table[2].volt=968750; 	//freq=1794 1043750
+				fv_table->table[3].volt=943750; 	//freq=1690 1031250
+				fv_table->table[4].volt=925000; 	//freq=1586 1031250
+				fv_table->table[5].volt=893750; 	//freq=1482 987500
+				fv_table->table[6].volt=868750; 	//freq=1352 931250
+				fv_table->table[7].volt=831250; 	//freq=1248 893750
+				fv_table->table[8].volt=793750; 	//freq=1144 856250
+				fv_table->table[9].volt=750000; 	//freq=1014 806250
+				fv_table->table[10].volt=712500; 	//freq=902  768750
+				fv_table->table[11].volt=687500; 	//freq=839  750000
+				fv_table->table[12].volt=668750; 	//freq=757  731250
+				fv_table->table[13].volt=643750; 	//freq=676  706250
+				fv_table->table[14].volt=618750; 	//freq=546  668750
+				fv_table->table[15].volt=600000;	//freq=449  637500
+				fv_table->table[16].volt=575000;	//freq=343  612500
+				fv_table->table[17].volt=562500; 	//freq=208  600000
 		}
 		if(num_of_lv==17){
 				//for(topser =0 ;topser < num_of_lv; topser++){
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				/*Undervolt the BIG cores by 25000uV*/
-				fv_table->table[0].volt=1206250;	// freq=2496 1256250
-				fv_table->table[1].volt=1181250;	// freq=2392 1256250
-				fv_table->table[2].volt=1162500;	// freq=2288 1187500
-				fv_table->table[3].volt=1162500;	// freq=2184 1137500
-				fv_table->table[4].volt=1156250;	// freq=2080 1181250
-				fv_table->table[5].volt=1100000;	// freq=1976 1125000
-				fv_table->table[6].volt=1056250;	// freq=1872 1081250
-				fv_table->table[7].volt=1012500;	// freq=1768 1037500
-				fv_table->table[8].volt=975000;		// freq=1664 1000000
-				fv_table->table[9].volt=937500;		// freq=1560 962500
-				fv_table->table[10].volt=862500;	// freq=1352 887500
-				//fv_table->table[15].volt=600000;//
-				//fv_table->table[16].volt=593750;//
+				/*Undervolt the BIG cores*/
+				fv_table->table[0].volt=1137500;	// freq=2496 1256250
+				fv_table->table[1].volt=1125000;	// freq=2392 1256250
+				fv_table->table[2].volt=1112500;	// freq=2288 1187500
+				fv_table->table[3].volt=1087500;	// freq=2184 1137500
+				fv_table->table[4].volt=1056250;	// freq=2080 1181250
+				fv_table->table[5].volt=1025000;	// freq=1976 1125000
+				fv_table->table[6].volt=981250;		// freq=1872 1081250
+				fv_table->table[7].volt=937500;		// freq=1768 1037500
+				fv_table->table[8].volt=900000;		// freq=1664 1000000
+				fv_table->table[9].volt=862500;		// freq=1560 962500
+				fv_table->table[10].volt=800000;	// freq=1352 887500
+				fv_table->table[11].volt=731250;	// freq=1144 818750
+				fv_table->table[12].volt=675000;	// freq=936  762500
+				fv_table->table[13].volt=637500;	// freq=728  700000
+				fv_table->table[14].volt=618750;	// freq=520  643750
+				fv_table->table[15].volt=593750;	// freq=312  600000
+				fv_table->table[16].volt=581250;	// freq=208  600000
 		}
 		table[i] = fv_table->table[i].volt;
 		pr_info("  num_of_lv : %u, table[i].volt : %u,topser99voltage_table\n",
@@ -281,40 +290,49 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				/*Undervolt little cores by 25000uV and 12500 for table 10*/
-				fv_table->table[0].volt=1143750; 	//freq=2002 1168750
-				fv_table->table[1].volt=1106250; 	//freq=1898 1131250
-				fv_table->table[2].volt=1018750; 	//freq=1794 1043750
-				fv_table->table[3].volt=1006250; 	//freq=1690 1031250
-				fv_table->table[4].volt=1006250; 	//freq=1586 1031250
-				fv_table->table[5].volt=962500; 	//freq=1482 987500
-				fv_table->table[6].volt=906250; 	//freq=1352 931250
-				fv_table->table[7].volt=868750; 	//freq=1248 893750
-				fv_table->table[8].volt=831250; 	//freq=1144 856250
-				fv_table->table[9].volt=781250; 	//freq=1014 806250
-				fv_table->table[10].volt=756250; 	//freq=902  768750
-				//fv_table->table[15].volt=593750;
-				//fv_table->table[16].volt=587500;
+				/*Undervolt little cores*/
+				fv_table->table[0].volt=1018750; 	//freq=2002 1168750
+				fv_table->table[1].volt=981250; 	//freq=1898 1131250
+				fv_table->table[2].volt=968750; 	//freq=1794 1043750
+				fv_table->table[3].volt=943750; 	//freq=1690 1031250
+				fv_table->table[4].volt=925000; 	//freq=1586 1031250
+				fv_table->table[5].volt=893750; 	//freq=1482 987500
+				fv_table->table[6].volt=868750; 	//freq=1352 931250
+				fv_table->table[7].volt=831250; 	//freq=1248 893750
+				fv_table->table[8].volt=793750; 	//freq=1144 856250
+				fv_table->table[9].volt=750000; 	//freq=1014 806250
+				fv_table->table[10].volt=712500; 	//freq=902  768750
+				fv_table->table[11].volt=687500; 	//freq=839  750000
+				fv_table->table[12].volt=668750; 	//freq=757  731250
+				fv_table->table[13].volt=643750; 	//freq=676  706250
+				fv_table->table[14].volt=618750; 	//freq=546  668750
+				fv_table->table[15].volt=600000;	//freq=449  637500
+				fv_table->table[16].volt=575000;	//freq=343  612500
+				fv_table->table[17].volt=562500; 	//freq=208  600000
 		}
 		if(num_of_lv==17){
 				//for(topser =0 ;topser < num_of_lv; topser++){
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				/*Undervolt the BIG cores by 25000uV*/
-				fv_table->table[0].volt=1206250;	// freq=2496 1256250
-				fv_table->table[1].volt=1181250;	// freq=2392 1256250
-				fv_table->table[2].volt=1162500;	// freq=2288 1187500
-				fv_table->table[3].volt=1162500;	// freq=2184 1137500
-				fv_table->table[4].volt=1156250;	// freq=2080 1181250
-				fv_table->table[5].volt=1100000;	// freq=1976 1125000
-				fv_table->table[6].volt=1056250;	// freq=1872 1081250
-				fv_table->table[7].volt=1012500;	// freq=1768 1037500
-				fv_table->table[8].volt=975000;		// freq=1664 1000000
-				fv_table->table[9].volt=937500;		// freq=1560 962500
-				fv_table->table[10].volt=862500;	// freq=1352 887500
-				//fv_table->table[15].volt=600000;//
-				//fv_table->table[16].volt=593750;//
+				/*Undervolt the BIG cores*/
+				fv_table->table[0].volt=1137500;	// freq=2496 1256250
+				fv_table->table[1].volt=1125000;	// freq=2392 1256250
+				fv_table->table[2].volt=1112500;	// freq=2288 1187500
+				fv_table->table[3].volt=1087500;	// freq=2184 1137500
+				fv_table->table[4].volt=1056250;	// freq=2080 1181250
+				fv_table->table[5].volt=1025000;	// freq=1976 1125000
+				fv_table->table[6].volt=981250;		// freq=1872 1081250
+				fv_table->table[7].volt=937500;		// freq=1768 1037500
+				fv_table->table[8].volt=900000;		// freq=1664 1000000
+				fv_table->table[9].volt=862500;		// freq=1560 962500
+				fv_table->table[10].volt=800000;	// freq=1352 887500
+				fv_table->table[11].volt=731250;	// freq=1144 818750
+				fv_table->table[12].volt=675000;	// freq=936  762500
+				fv_table->table[13].volt=637500;	// freq=728  700000
+				fv_table->table[14].volt=618750;	// freq=520  643750
+				fv_table->table[15].volt=593750;	// freq=312  600000
+				fv_table->table[16].volt=581250;	// freq=208  600000
 		}
 		table[i] = fv_table->table[i].volt;
 }
