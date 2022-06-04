@@ -1002,7 +1002,7 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 				break;
 			}
 		}
-pr_info("constraint_table_ect: freq : %u kHz - dm->c.freq_table[index].constraint_freq : %u kHz - topser99\n",freq,dm->c.freq_table[index].constraint_freq);
+//pr_info("constraint_table_ect: freq : %u kHz - dm->c.freq_table[index].constraint_freq : %u kHz - topser99\n",freq,dm->c.freq_table[index].constraint_freq);
 		/*
 		 * Due to higher levels of constraint_freq should not be NULL,
 		 * they should be filled with highest value of sub_frequencies of ect

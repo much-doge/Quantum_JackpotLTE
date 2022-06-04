@@ -764,8 +764,8 @@ static int __init init_ufc_table_dt(struct exynos_cpufreq_domain *domain,
 				}
 			}
 			//Not needed anymore. Only for debugging purposes
-			pr_info("  Freq : %u kHz , Limit_freq : %u kHz, topser_UFC\n",
-					freq,ufc->info.freq_table[index].limit_freq);
+			//pr_info("  Freq : %u kHz , Limit_freq : %u kHz, topser_UFC\n",
+			//		freq,ufc->info.freq_table[index].limit_freq);
 		}
 		kfree(table);
 	}
