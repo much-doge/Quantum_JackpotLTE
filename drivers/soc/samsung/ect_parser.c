@@ -556,32 +556,28 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		ect_parse_integer(&address, &range->lower_bound_temperature);
 		ect_parse_integer(&address, &range->upper_bound_temperature);
 		ect_parse_integer(&address, &range->max_frequency);
-		//for big
+	
+		//Trip frequencies for big
 		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
 			range->max_frequency=2496000;		
-		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
-			range->max_frequency=2392000;
-		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
-			range->max_frequency=2288000;
 		if(range->lower_bound_temperature==76&&range->max_frequency==1768000)
-			range->max_frequency=2184000;
+			range->max_frequency=2392000;
 		if(range->lower_bound_temperature==81&&range->max_frequency==1768000)
-			range->max_frequency=2080000;
+			range->max_frequency=2288000;
 		if(range->lower_bound_temperature==86&&range->max_frequency==1560000)
-			range->max_frequency=1872000;
+			range->max_frequency=2184000;
 		if(range->lower_bound_temperature==91&&range->max_frequency==728000)
-			range->max_frequency=1768000;
-		//for litte
+			range->max_frequency=2080000;
+	
+		//Trip frequencies for LITTLE
 		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
-			range->max_frequency=1898000; //
-		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
-			range->max_frequency=1794000; //
+			range->max_frequency=2002000; 
 		if(range->lower_bound_temperature==76&&range->max_frequency==1690000)
-			range->max_frequency=1690000;
+			range->max_frequency=1898000;
 		if(range->lower_bound_temperature==81&&range->max_frequency==1690000)
-			range->max_frequency=1586000;
+			range->max_frequency=1794000;
 		if(range->lower_bound_temperature==86&&range->max_frequency==1586000)
-			range->max_frequency=1482000;
+			range->max_frequency=1690000;
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
 	}
