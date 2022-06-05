@@ -275,15 +275,15 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				fv_table->table[0].volt=1200000;	// freq=1300	1200000
-				fv_table->table[1].volt=1093750;	// freq=1200	1093750
-				fv_table->table[2].volt=1018750;	// freq=1100	1018750
-				fv_table->table[3].volt=943750;		// freq=1001	943750
-				fv_table->table[4].volt=843750;		// freq=845		843750
-				fv_table->table[5].volt=756250;		// freq=676		756250
-				fv_table->table[6].volt=718750;		// freq=545		718750
-				fv_table->table[7].volt=681250;		// freq=450		681250
-				fv_table->table[8].volt=625000;		// freq=343		625000
+				fv_table->table[0].volt=1100000;	// freq=1300	1200000
+				fv_table->table[1].volt=993750;		// freq=1200	1093750
+				fv_table->table[2].volt=918750;		// freq=1100	1018750
+				fv_table->table[3].volt=843750;		// freq=1001	943750
+				fv_table->table[4].volt=743750;		// freq=845		843750
+				fv_table->table[5].volt=656250;		// freq=676		756250
+				fv_table->table[6].volt=618750;		// freq=545		718750
+				fv_table->table[7].volt=581250;		// freq=450		681250
+				fv_table->table[8].volt=525000;		// freq=343		625000
 		}
 		table[i] = fv_table->table[i].volt;
 		pr_info("  num_of_lv : %u, table[i].volt : %u,topser99voltage_table\n",
@@ -370,15 +370,15 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 					//fv_table->table[topser].volt-=6250;
 					//break;
 					//}
-				fv_table->table[0].volt=1200000;	// freq=1300	1200000
-				fv_table->table[1].volt=1093750;	// freq=1200	1093750
-				fv_table->table[2].volt=1018750;	// freq=1100	1018750
-				fv_table->table[3].volt=943750;		// freq=1001	943750
-				fv_table->table[4].volt=843750;		// freq=845		843750
-				fv_table->table[5].volt=756250;		// freq=676		756250
-				fv_table->table[6].volt=718750;		// freq=545		718750
-				fv_table->table[7].volt=681250;		// freq=450		681250
-				fv_table->table[8].volt=625000;		// freq=343		625000
+				fv_table->table[0].volt=1100000;	// freq=1300	1200000
+				fv_table->table[1].volt=993750;		// freq=1200	1093750
+				fv_table->table[2].volt=918750;		// freq=1100	1018750
+				fv_table->table[3].volt=843750;		// freq=1001	943750
+				fv_table->table[4].volt=743750;		// freq=845		843750
+				fv_table->table[5].volt=656250;		// freq=676		756250
+				fv_table->table[6].volt=618750;		// freq=545		718750
+				fv_table->table[7].volt=581250;		// freq=450		681250
+				fv_table->table[8].volt=525000;		// freq=343		625000
 		}
 		table[i] = fv_table->table[i].volt;
 }
