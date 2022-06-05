@@ -262,6 +262,29 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 				fv_table->table[15].volt=593750;	// freq=312  600000
 				fv_table->table[16].volt=581250;	// freq=208  600000
 		}
+		// This is used to reveal MIF voltages, MIF level is 10
+		//if(num_of_lv==10){
+				//for(topser =0 ;topser < num_of_lv; topser++){
+					//fv_table->table[topser].volt-=6250;
+					//break;
+					//}
+		//}
+		// This is used to reveal GPU voltages, GPU level is 9
+		if(num_of_lv==9){
+				//for(topser =0 ;topser < num_of_lv; topser++){
+					//fv_table->table[topser].volt-=6250;
+					//break;
+					//}
+				fv_table->table[0].volt=1200000;	// freq=1300	1200000
+				fv_table->table[1].volt=1093750;	// freq=1200	1093750
+				fv_table->table[2].volt=1018750;	// freq=1100	1018750
+				fv_table->table[3].volt=943750;		// freq=1001	943750
+				fv_table->table[4].volt=843750;		// freq=845		843750
+				fv_table->table[5].volt=756250;		// freq=676		756250
+				fv_table->table[6].volt=718750;		// freq=545		718750
+				fv_table->table[7].volt=681250;		// freq=450		681250
+				fv_table->table[8].volt=625000;		// freq=343		625000
+		}
 		table[i] = fv_table->table[i].volt;
 		pr_info("  num_of_lv : %u, table[i].volt : %u,topser99voltage_table\n",
 				fv_table->table[i].volt,num_of_lv);
@@ -333,6 +356,29 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 				fv_table->table[14].volt=618750;	// freq=520  643750
 				fv_table->table[15].volt=593750;	// freq=312  600000
 				fv_table->table[16].volt=581250;	// freq=208  600000
+		}
+		// This is used to reveal MIF voltages, MIF level is 10
+		//if(num_of_lv==10){
+				//for(topser =0 ;topser < num_of_lv; topser++){
+					//fv_table->table[topser].volt-=6250;
+					//break;
+					//}
+		//}
+		// This is used to reveal GPU voltages, GPU level is 9
+		if(num_of_lv==9){
+				//for(topser =0 ;topser < num_of_lv; topser++){
+					//fv_table->table[topser].volt-=6250;
+					//break;
+					//}
+				fv_table->table[0].volt=1200000;	// freq=1300	1200000
+				fv_table->table[1].volt=1093750;	// freq=1200	1093750
+				fv_table->table[2].volt=1018750;	// freq=1100	1018750
+				fv_table->table[3].volt=943750;		// freq=1001	943750
+				fv_table->table[4].volt=843750;		// freq=845		843750
+				fv_table->table[5].volt=756250;		// freq=676		756250
+				fv_table->table[6].volt=718750;		// freq=545		718750
+				fv_table->table[7].volt=681250;		// freq=450		681250
+				fv_table->table[8].volt=625000;		// freq=343		625000
 		}
 		table[i] = fv_table->table[i].volt;
 }
