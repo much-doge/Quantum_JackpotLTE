@@ -557,7 +557,10 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		ect_parse_integer(&address, &range->upper_bound_temperature);
 		ect_parse_integer(&address, &range->max_frequency);
 	
-		//Trip frequencies for big
+		/* Trip frequencies for big cores; there are 8 trip level: 20c, 76c, 81c, 86c, 91c, 96c, 101c, and 115c.
+	 	 * The codes below override the default trip frequencies on each level.
+		 * Despite my attempt to increase the trip freq, it DOES NOT result in 
+		 * increased heterogenous multitasking benchmark results. */
 		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
 			range->max_frequency=2496000;		
 		if(range->lower_bound_temperature==76&&range->max_frequency==1768000)
@@ -567,17 +570,37 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		if(range->lower_bound_temperature==86&&range->max_frequency==1560000)
 			range->max_frequency=2184000;
 		if(range->lower_bound_temperature==91&&range->max_frequency==728000)
+			range->max_frequency=2184000;
+		if(range->lower_bound_temperature==96&&range->max_frequency==728000)
+			range->max_frequency=2184000;
+		if(range->lower_bound_temperature==101&&range->max_frequency==728000)
 			range->max_frequency=2080000;
-	
-		//Trip frequencies for LITTLE
+		// Decrease max freq of the last trip level (You don't want to cook your CPU)
+		if(range->lower_bound_temperature==115&&range->max_frequency==728000)
+			range->max_frequency=208000;
+
+		/* Trip frequencies for LITTLE cores; there are 8 trip level: 20c, 76c, 81c, 86c, 91c, 96c, 101c, and 115c.
+	 	 * The codes below override the default trip frequencies on each level.
+		 * Despite my attempt to increase the trip freq, it DOES NOT result in 
+		 * increased heterogenous multitasking benchmark results. */
 		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
 			range->max_frequency=2002000; 
 		if(range->lower_bound_temperature==76&&range->max_frequency==1690000)
 			range->max_frequency=1898000;
 		if(range->lower_bound_temperature==81&&range->max_frequency==1690000)
 			range->max_frequency=1794000;
-		if(range->lower_bound_temperature==86&&range->max_frequency==1586000)
+		if(range->lower_bound_temperature==86&&range->max_frequency==1352000)
+			range->max_frequency=1794000;
+		if(range->lower_bound_temperature==91&&range->max_frequency==1144000)
 			range->max_frequency=1690000;
+		if(range->lower_bound_temperature==96&&range->max_frequency==902000)
+			range->max_frequency=1586000;
+		if(range->lower_bound_temperature==101&&range->max_frequency==208000)
+			range->max_frequency=1482000;
+		// Decrease max freq of the last trip level (You don't want to cook your CPU)
+		if(range->lower_bound_temperature==115&&range->max_frequency==208000)
+			range->max_frequency=208000;
+
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
 	}
