@@ -336,8 +336,9 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 	for (i = 0; i < data->max_state; i++) {
 		if (data->opp_list[i].freq > data->max_freq ||
 			data->opp_list[i].freq < data->min_freq)
-			data->max_freq=data->opp_list[2].freq ; // for max freq is 1794
-			// data->max_freq=data->opp_list[0].freq ; // for max freq is 2093
+			data->max_freq=data->opp_list[2].freq ; // for max freq of 1794
+			//data->max_freq=data->opp_list[1].freq ; // for max freq of 2002
+			// data->max_freq=data->opp_list[0].freq ; // for max freq of 2093
 			//dev_pm_opp_disable(data->dev, (unsigned long)data->opp_list[i].freq); //disable for full available_frequencie
 	}
 
