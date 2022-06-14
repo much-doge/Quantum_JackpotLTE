@@ -1,5 +1,5 @@
-#ifndef __S6E8AA5_MDNIE_H__
-#define __S6E8AA5_MDNIE_H__
+#ifndef __MDNIE_TABLE_A6ELTE_H__
+#define __MDNIE_TABLE_A6ELTE_H__
 
 /* 2017.03.03 */
 

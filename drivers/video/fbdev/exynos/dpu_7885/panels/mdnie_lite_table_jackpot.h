@@ -1,5 +1,5 @@
-#ifndef __S6E3FA7_MDNIE_H__
-#define __S6E3FA7_MDNIE_H__
+#ifndef __MDNIE_TABLE_JACKPOT_H__
+#define __MDNIE_TABLE_JACKPOT_H__
 
 /* 2017.10.18 */
 

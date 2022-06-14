@@ -1,5 +1,5 @@
-#ifndef __EA8061S_MDNIE_H__
-#define __EA8061S_MDNIE_H__
+#ifndef __MDNIE_TABLE_H__
+#define __MDNIE_TABLE_H__
 
 /* 2017.3.14 */
 
