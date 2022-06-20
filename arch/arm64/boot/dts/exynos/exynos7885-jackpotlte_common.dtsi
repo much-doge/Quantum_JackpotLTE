@@ -1546,11 +1546,14 @@
 	leds_ktd2692 {
 		compatible = "ktd2692";
 		flash_control = <&gpg1 2 0x1>;
-		max_current = <1500>; /* (IMax) */
-		flash_current = <1200>; /* (n/16)xIMax (1<=n<=16) */
-		movie_current = <175>; /* (n/16)*IMax/3 (1<=n<=16) */
-		factory_current = <175>; /* (n/16)xIMax/3 (1<=n<=16) */
-		torch_current = <75>; /* (n/16)xIMax/3 (1<=n<=16) */
+		max_current = <1500>; 		/* (IMax) */
+		flash_current = <1200>; 	/* (n/16)xIMax (1<=n<=16) */
+		movie_current = <175>; 		/* (n/16)*IMax/3 (1<=n<=16) */
+		factory_current = <175>; 	/* (n/16)xIMax/3 (1<=n<=16) */
+		/* The value below fix low torch brightness on custom ROM and GSI.
+		 * Don't worry, it won't let out magic smoke, KTD2692 can drive up to 
+		 * 1.5A according to the datasheet, 0.220A is nothing.*/
+		torch_current = <220>; 		/* (n/16)xIMax/3 (1<=n<=16) */
 		torch_table_enable = <1>;
 		torch_table = <1 2 2 3 3 4 4 4 5 5>;
 		status = "okay";
