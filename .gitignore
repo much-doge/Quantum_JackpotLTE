@@ -150,3 +150,4 @@ security/selinux/flask.h
 usr/gen_init_cpio
 net/wireguard/crypto/zinc/chacha20/chacha20-arm64.S
 net/wireguard/crypto/zinc/poly1305/poly1305-arm64.S
+net/wireguard/crypto/zinc/chacha20/chacha20-arm64.S
