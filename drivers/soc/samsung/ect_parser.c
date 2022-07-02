@@ -563,6 +563,7 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		 * increased heterogenous multitasking benchmark results. */
 		if(range->lower_bound_temperature==20&&range->max_frequency==2184000)
 			range->max_frequency=2496000;		
+		/*
 		if(range->lower_bound_temperature==76&&range->max_frequency==1768000)
 			range->max_frequency=2392000;
 		if(range->lower_bound_temperature==81&&range->max_frequency==1768000)
@@ -578,6 +579,7 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		// Decrease max freq of the last trip level (You don't want to cook your CPU)
 		if(range->lower_bound_temperature==115&&range->max_frequency==728000)
 			range->max_frequency=208000;
+		*/
 
 		/* Trip frequencies for LITTLE cores; there are 8 trip level: 20c, 76c, 81c, 86c, 91c, 96c, 101c, and 115c.
 	 	 * The codes below override the default trip frequencies on each level.
@@ -585,6 +587,7 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		 * increased heterogenous multitasking benchmark results. */
 		if(range->lower_bound_temperature==20&&range->max_frequency==1690000)
 			range->max_frequency=2002000; 
+		/*
 		if(range->lower_bound_temperature==76&&range->max_frequency==1690000)
 			range->max_frequency=1898000;
 		if(range->lower_bound_temperature==81&&range->max_frequency==1690000)
@@ -600,6 +603,7 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		// Decrease max freq of the last trip level (You don't want to cook your CPU)
 		if(range->lower_bound_temperature==115&&range->max_frequency==208000)
 			range->max_frequency=208000;
+		*/
 
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
