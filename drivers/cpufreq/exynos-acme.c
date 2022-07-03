@@ -1181,15 +1181,15 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 	domain->boot_freq = cal_dfs_get_boot_freq(domain->cal_id);
 	domain->resume_freq = cal_dfs_get_resume_freq(domain->cal_id);
 	if (domain->id == 0) {
-		domain->boot_freq = 1586000; //2002 1898 1794 1690...449 343 208
-		domain->resume_freq = 1586000;
+		domain->boot_freq = 1794000; //2002 1898 1794 1690...449 343 208
+		domain->resume_freq = 1794000;
 		domain->max_freq = 1794000;
-		domain->min_freq = 208000;//2002 1898 1794 1690...449 343 208
+		domain->min_freq = 902000;//2002 1898 1794 1690...449 343 208
 	} else if (domain->id == 1) {
-		domain->boot_freq = 2184000;
-		domain->resume_freq = 2184000;
+		domain->boot_freq = 2392000;
+		domain->resume_freq = 2392000;
 		domain->max_freq = 2392000; //2496 2392 2288 2184....728 520 312 208
-		domain->min_freq = 208000; //2496 2392 2288 2184....728 520 312 208
+		domain->min_freq = 936000; //2496 2392 2288 2184....728 520 312 208
 	}
 
 	/* Initialize freq boost */
