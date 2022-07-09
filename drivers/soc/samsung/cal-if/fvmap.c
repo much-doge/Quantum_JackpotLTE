@@ -221,6 +221,7 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 				/*Undervolt little cores*/
 				fv_table->table[0].volt=950000; 	//freq=2002 1168750
 				fv_table->table[1].volt=912500; 	//freq=1898 1131250
+				
 				fv_table->table[2].volt=881250; 	//freq=1794 1043750
 				fv_table->table[3].volt=850000; 	//freq=1690 1031250
 				fv_table->table[4].volt=825000; 	//freq=1586 1031250
@@ -230,6 +231,7 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 				fv_table->table[8].volt=731250; 	//freq=1144 856250
 				fv_table->table[9].volt=706250; 	//freq=1014 806250
 				fv_table->table[10].volt=662500; 	//freq=902  768750
+				
 				fv_table->table[11].volt=643750; 	//freq=839  750000
 				fv_table->table[12].volt=618750; 	//freq=757  731250
 				fv_table->table[13].volt=606250; 	//freq=676  706250
@@ -245,6 +247,7 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 					//}
 				/*Undervolt the BIG cores*/
 				fv_table->table[0].volt=1062500;	// freq=2496 1256250
+				
 				fv_table->table[1].volt=1050000;	// freq=2392 1256250
 				fv_table->table[2].volt=1037500;	// freq=2288 1187500
 				fv_table->table[3].volt=1018750;	// freq=2184 1137500
@@ -257,6 +260,7 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 				fv_table->table[10].volt=750000;	// freq=1352 887500
 				fv_table->table[11].volt=681250;	// freq=1144 818750
 				fv_table->table[12].volt=625000;	// freq=936  762500
+				
 				fv_table->table[13].volt=587500;	// freq=728  700000
 				fv_table->table[14].volt=568750;	// freq=520  643750
 				fv_table->table[15].volt=543750;	// freq=312  600000
@@ -316,6 +320,7 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 				/*Undervolt little cores*/
 				fv_table->table[0].volt=950000; 	//freq=2002 1168750
 				fv_table->table[1].volt=912500; 	//freq=1898 1131250
+				
 				fv_table->table[2].volt=881250; 	//freq=1794 1043750
 				fv_table->table[3].volt=850000; 	//freq=1690 1031250
 				fv_table->table[4].volt=825000; 	//freq=1586 1031250
@@ -325,6 +330,7 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 				fv_table->table[8].volt=731250; 	//freq=1144 856250
 				fv_table->table[9].volt=706250; 	//freq=1014 806250
 				fv_table->table[10].volt=662500; 	//freq=902  768750
+				
 				fv_table->table[11].volt=643750; 	//freq=839  750000
 				fv_table->table[12].volt=618750; 	//freq=757  731250
 				fv_table->table[13].volt=606250; 	//freq=676  706250
@@ -340,6 +346,7 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 					//}
 				/*Undervolt the BIG cores*/
 				fv_table->table[0].volt=1062500;	// freq=2496 1256250
+				
 				fv_table->table[1].volt=1050000;	// freq=2392 1256250
 				fv_table->table[2].volt=1037500;	// freq=2288 1187500
 				fv_table->table[3].volt=1018750;	// freq=2184 1137500
@@ -352,6 +359,7 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 				fv_table->table[10].volt=750000;	// freq=1352 887500
 				fv_table->table[11].volt=681250;	// freq=1144 818750
 				fv_table->table[12].volt=625000;	// freq=936  762500
+				
 				fv_table->table[13].volt=587500;	// freq=728  700000
 				fv_table->table[14].volt=568750;	// freq=520  643750
 				fv_table->table[15].volt=543750;	// freq=312  600000
