@@ -19,6 +19,7 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
+#include <sound/jack.h>
 #include <sound/initval.h>
 #include <sound/tlv.h>
 #include <sound/samsung/abox.h>
@@ -27,6 +28,7 @@
 #include <linux/gpio.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
+#include <linux/switch.h>
 #include <linux/input.h>
 #include <linux/completion.h>
 #include <uapi/linux/input-event-codes.h>
