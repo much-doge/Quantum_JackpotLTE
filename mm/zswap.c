@@ -802,7 +802,7 @@ static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
 	struct zswap_pool *pool;
 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
 #ifdef CONFIG_ZSWAP_MIGRATION_SUPPORT
-	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM | __GFP_HIGHMEM | __GFP_MOVABLE;
+	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM | __GFP_HIGHMEM | __GFP_MOVABLE | __GFP_CMA;
 #else
 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM | __GFP_HIGHMEM;
 #endif
@@ -1606,7 +1606,7 @@ static void zswap_frontswap_init(unsigned type)
 {
 	struct zswap_tree *tree;
 
-	tree = kzalloc(sizeof(*tree), GFP_KERNEL);
+	tree = kzalloc(sizeof(struct zswap_tree), GFP_KERNEL);
 	if (!tree) {
 		pr_err("alloc failed, zswap disabled for swap type %d\n", type);
 		return;

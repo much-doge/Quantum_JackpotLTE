@@ -56,6 +56,7 @@ policy_state usbpd_policy_src_startup(struct policy_data *policy)
 	/* PD Protocol Initialization */
 	usbpd_init_protocol(pd_data);
 	pd_data->phy_ops.soft_reset(pd_data);
+	pd_data->phy_ops.set_rp_control(pd_data, PLUG_CTRL_RP80);
 
 	/* Fro tSrcrecover after PE_SRC_Transition_to_default */
 	if (policy->txhardresetflag == 1) {
@@ -942,6 +943,7 @@ policy_state usbpd_policy_snk_startup(struct policy_data *policy)
 
 	/* PD Protocol Initialization */
 	usbpd_init_protocol(pd_data);
+	pd_data->phy_ops.set_rp_control(pd_data, PLUG_CTRL_RP80);
 
 	/* Configuration Channel On */
 	//pd_data->phy_ops.set_cc_control(pd_data, USBPD_CC_ON);
@@ -1190,7 +1192,7 @@ policy_state usbpd_policy_snk_select_capability(struct policy_data *policy)
 policy_state usbpd_policy_snk_transition_sink(struct policy_data *policy)
 {
 	struct usbpd_data *pd_data = policy_to_usbpd(policy);
-	struct usbpd_manager_data *manager = &pd_data->manager;	
+	struct usbpd_manager_data *manager = &pd_data->manager;
 	int ret  = PE_SNK_Transition_Sink;
 	int ms = 0;
 	bool vbus_short = 0;
@@ -1384,6 +1386,7 @@ policy_state usbpd_policy_snk_ready(struct policy_data *policy)
 
 		/* Command Check from AP */
 		CHECK_CMD(pd_data, MANAGER_REQ_NEW_POWER_SRC, PE_SNK_Select_Capability);
+		CHECK_CMD(pd_data, MANAGER_REQ_GET_SRC_CAP, PE_SNK_Get_Source_Cap);
 		CHECK_CMD(pd_data, MANAGER_REQ_PR_SWAP, PE_PRS_SNK_SRC_Send_Swap);
 		CHECK_CMD(pd_data, MANAGER_REQ_DR_SWAP, PE_DRS_Evaluate_Send_Port);
 		CHECK_CMD(pd_data, MANAGER_REQ_VCONN_SWAP, PE_VCS_Send_Swap);
@@ -2076,7 +2079,7 @@ policy_state usbpd_policy_prs_src_snk_reject_pr_swap(struct policy_data *policy)
 
 	/* PD State Inform for AP */
 	dev_info(pd_data->dev, "%s\n", __func__);
-	
+
 
 	pd_data->phy_ops.get_data_role(pd_data, &data_role);
 
@@ -2221,6 +2224,9 @@ policy_state usbpd_policy_prs_src_snk_transition_to_off(struct policy_data *poli
 	if (ret == PE_PRS_SRC_SNK_Transition_off)
 		return ret;
 
+#if defined CONFIG_CCIC_S2MU004
+	pd_data->phy_ops.set_power_role(pd_data, USBPD_SOURCE);
+#endif
 	pd_data->phy_ops.pr_swap(pd_data, USBPD_SOURCE_OFF);
 
 	/* VBUS off */
@@ -2244,6 +2250,10 @@ policy_state usbpd_policy_prs_src_snk_transition_to_off(struct policy_data *poli
 	/* skip delay when GEARVR is attached */
 	if (manager->acc_type != CCIC_DOCK_HMT || manager->SVID_0 == 0)
 		msleep(600);
+#endif
+#if defined CONFIG_CCIC_S2MU004
+	if (ret == PE_PRS_SRC_SNK_Transition_off)
+		pd_data->phy_ops.set_power_role(pd_data, USBPD_DRP);
 #endif
 
 	return ret;
@@ -2473,6 +2483,8 @@ policy_state usbpd_policy_prs_snk_src_transition_to_off(struct policy_data *poli
 
 	while (1) {
 		if (policy->plug_valid == 0) {
+			pr_info("%s, plug_valid == 0\n", __func__);
+			pd_data->phy_ops.set_power_role(pd_data, USBPD_DRP);
 			ret = PE_PRS_SNK_SRC_Transition_off;
 			break;
 		}
@@ -2991,7 +3003,7 @@ policy_state usbpd_policy_ufp_vdm_get_svids(struct policy_data *policy)
 	Request SVIDs information from DPM
 	**********************************************/
 
-	if (usbpd_manager_get_svids(pd_data) == 0)
+	if (usbpd_manager_get_svids(pd_data) == MANAGER_SUPPORT)
 		return PE_UFP_VDM_Send_SVIDs;
 	else
 		return PE_UFP_VDM_Get_SVIDs_NAK;
@@ -3099,7 +3111,7 @@ policy_state usbpd_policy_ufp_vdm_get_modes(struct policy_data *policy)
 	Request Modes information from DPM
 	**********************************************/
 
-	if (usbpd_manager_get_modes(pd_data))
+	if (usbpd_manager_get_modes(pd_data) == MANAGER_SUPPORT)
 		return PE_UFP_VDM_Send_Modes;
 	else
 		return PE_UFP_VDM_Get_Modes_NAK;
@@ -3206,7 +3218,7 @@ policy_state usbpd_policy_ufp_vdm_evaluate_mode_entry(struct policy_data *policy
 	//dev_info(pd_data->dev, "%s\n", __func__);
 
 	/* Certification: Ellisys: TD.PD.VDMU.E15.Applicability */
-	if (usbpd_manager_get_svids(pd_data) == 0)
+	if (usbpd_manager_get_svids(pd_data) == MANAGER_SUPPORT)
 		return PE_UFP_VDM_Mode_Entry_ACK;
 	else
 		return PE_UFP_VDM_Mode_Entry_NAK;
@@ -3324,15 +3336,12 @@ policy_state usbpd_policy_ufp_vdm_mode_exit(struct policy_data *policy)
 
 	/* get mode to exit */
 	mode_pos = policy->rx_data_obj[0].structured_vdm.obj_pos;
-	if (usbpd_manager_exit_mode(pd_data, mode_pos) == 0)
+	if (usbpd_manager_exit_mode(pd_data, mode_pos) == MANAGER_SUPPORT)
 		ret =  PE_UFP_VDM_Mode_Exit_ACK;
 
 	ret =  PE_UFP_VDM_Mode_Exit_NAK;
 
 	return ret;
-
-
-
 }
 
 policy_state usbpd_policy_ufp_vdm_mode_exit_ack(struct policy_data *policy)
@@ -6123,6 +6132,11 @@ void usbpd_policy_work(struct work_struct *work)
 		}
 	dev_info(pd_data->dev, "%s saved state %x next_state %x \n", __func__, saved_state, next_state);
 	} while (saved_state != next_state);
+
+#if defined CONFIG_CCIC_S2MU004
+	if (pd_data->is_prswap)
+		pd_data->phy_ops.set_power_role(pd_data, USBPD_DRP);
+#endif
 
 	policy->state = next_state;
 	dev_info(pd_data->dev, "%s Finished\n", __func__);
