@@ -97,7 +97,6 @@
 #define USE_SENSOR_IF_DPHY
 #undef ENABLE_CLOCK_GATE
 /* #define ENABLE_DIRECT_CLOCK_GATE */
-#define ENABLE_HMP_BOOST
 
 /*
  * =================================================================================================
@@ -154,6 +153,4 @@
 #define DISABLE_CHECK_PERFRAME_FMT_SIZE
 
 #define FAST_FDAE
-
-#define CHAIN_SKIP_GFRAME_FOR_VRA
 #endif
