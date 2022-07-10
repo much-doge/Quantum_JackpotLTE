@@ -947,13 +947,6 @@ static int s2mu004_chg_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
 		if ((!charger->is_charging) || (charger->cable_type == SEC_BATTERY_CABLE_NONE))
 			val->intval = POWER_SUPPLY_CHARGE_TYPE_NONE;
-#if EN_IVR_IRQ
-		else if (charger->slow_charging ||
-			(!charger->slow_charging && s2mu004_check_slow_charging(charger, charger->input_current))) {
-			val->intval = POWER_SUPPLY_CHARGE_TYPE_SLOW;
-			pr_info("%s: slow-charging mode\n", __func__);
-		}
-#endif
 		else
 			val->intval = POWER_SUPPLY_CHARGE_TYPE_FAST;
 		break;
@@ -1528,9 +1521,6 @@ static void s2mu004_ivr_irq_work(struct work_struct *work)
 
 	if (charger->ivr_on) {
 		union power_supply_propval value;
-
-		if (is_not_wireless_type(charger->cable_type))
-			s2mu004_check_slow_charging(charger, charger->input_current);
 
 		if ((charger->irq_ivr_enabled == 1) &&
 			(charger->input_current <= MINIMUM_INPUT_CURRENT)) {

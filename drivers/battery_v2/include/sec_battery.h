@@ -433,10 +433,6 @@ struct sec_battery_info {
 #if defined(CONFIG_AFC_CHARGER_MODE)
 	char *hv_chg_name;
 #endif
-#if defined(CONFIG_CALC_TIME_TO_FULL)
-	int timetofull;
-	struct delayed_work timetofull_work;
-#endif
 	struct delayed_work slowcharging_work;
 #if defined(CONFIG_BATTERY_AGE_FORECAST)
 	int batt_cycle;
