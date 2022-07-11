@@ -19,8 +19,12 @@ CPPFLAGS_vmlinux.lds = -DTEXT_OFFSET=$(TEXT_OFFSET)
 OBJCOPYFLAGS	:=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 GZFLAGS		:=-9
 
-ifneq ($(CONFIG_RELOCATABLE),)
-LDFLAGS_vmlinux		+= -pie -Bsymbolic
+ifeq ($(CONFIG_RELOCATABLE), y)
+# Pass --no-apply-dynamic-relocs to restore pre-binutils-2.27 behaviour
+# for relative relocs, since this leads to better Image compression
+# with the relocation offsets always being zero.
+LDFLAGS_vmlinux		+= -shared -Bsymbolic -z notext -z norelro \
+			$(call ld-option, --no-apply-dynamic-relocs)
 endif
 
 KBUILD_DEFCONFIG := defconfig
@@ -108,9 +112,7 @@ endif
 
 KBUILD_DTBS	:= dtbs
 
-ifeq ($(CONFIG_EXYNOS_DTBTOOL),y)
-KBUILD_DTBS	+= dtb.img
-endif
+KBUILD_DTBO_IMG := dtbo.img
 
 all:	$(KBUILD_IMAGE) $(KBUILD_DTBS)
 
@@ -128,7 +130,10 @@ zinstall install: vmlinux
 %.dtb: scripts
 	$(Q)$(MAKE) $(build)=$(boot)/dts $(boot)/dts/$@
 
-PHONY += dtbs dtbs_install dtb.img
+%.dtbo: scripts
+	$(Q)$(MAKE) $(build)=$(boot)/dts $(boot)/dts/$@
+
+PHONY += dtbs dtbs_install
 
 dtbs: prepare scripts
 	$(Q)$(MAKE) $(build)=$(boot)/dts
@@ -136,11 +141,13 @@ dtbs: prepare scripts
 dtbs_install:
 	$(Q)$(MAKE) $(dtbinst)=$(boot)/dts
 
-dtb.img: prepare scripts dtbs
-	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
-
 Image-dtb Image.gz-dtb: vmlinux scripts dtbs
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+$(KBUILD_DTBO_IMG): dtbs
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+all: $(KBUILD_DTBO_IMG)
 
 PHONY += vdso_install
 vdso_install:
@@ -164,7 +171,6 @@ vdso_prepare: prepare0
 define archhelp
   echo  '* Image.gz      - Compressed kernel image (arch/$(ARCH)/boot/Image.gz)'
   echo  '  Image         - Uncompressed kernel image (arch/$(ARCH)/boot/Image)'
-  echo  '  dtb.img       - Build device tree image (arch/$(ARCH)/boot/dtb.img)'
   echo  '* dtbs          - Build device tree blobs for enabled boards'
   echo  '  dtbs_install  - Install dtbs to $(INSTALL_DTBS_PATH)'
   echo  '  install       - Install uncompressed kernel'

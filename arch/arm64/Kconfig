@@ -9,6 +9,8 @@ config ARM64
 	select ARCH_HAS_SG_CHAIN
 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
 	select ARCH_USE_CMPXCHG_LOCKREF
+	select ARCH_SUPPORTS_LTO_CLANG
+	select ARCH_SUPPORTS_THINLTO
 	select ARCH_SUPPORTS_ATOMIC_RMW
 	select ARCH_WANT_OPTIONAL_GPIOLIB
 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
@@ -226,8 +228,6 @@ source "init/Kconfig"
 source "kernel/Kconfig.freezer"
 
 source "arch/arm64/Kconfig.platforms"
-
-source "arch/arm64/mach-exynos/Kconfig"
 
 menu "Bus support"
 
@@ -482,7 +482,7 @@ config CAVIUM_ERRATUM_27456
 
 config QCOM_FALKOR_ERRATUM_1003
 	bool "Falkor E1003: Incorrect translation due to ASID change"
-	default y
+	default n
 	select ARM64_PAN if ARM64_SW_TTBR0_PAN
 	help
 	  On Falkor v1, an incorrect ASID may be cached in the TLB when ASID
@@ -1305,6 +1305,8 @@ source "fs/Kconfig"
 source "arch/arm64/kvm/Kconfig"
 
 source "arch/arm64/Kconfig.debug"
+
+source "arch/arm64/Kconfig.exynos"
 
 source "security/Kconfig"
 
