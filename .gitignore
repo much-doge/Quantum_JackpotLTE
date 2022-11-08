@@ -182,3 +182,4 @@ scripts/net/wireguard/tests/qemu/arch/x86_64.config
 scripts/net/wireguard/tests/qemu/init.c
 scripts/net/wireguard/tests/qemu/Makefile
 scripts/net/wireguard/version.h
+scripts/net/wireguard/crypto/zinc/curve25519/curve25519-x86_64.c
