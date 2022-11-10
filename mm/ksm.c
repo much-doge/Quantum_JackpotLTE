@@ -633,7 +633,6 @@ static void remove_rmap_item_from_tree(struct rmap_item *rmap_item)
 			ksm_pages_shared--;
 
 		put_anon_vma(rmap_item->anon_vma);
-		rmap_item->head = NULL;
 		rmap_item->address &= PAGE_MASK;
 
 	} else if (rmap_item->address & UNSTABLE_FLAG) {
@@ -1054,12 +1053,6 @@ static int try_to_merge_one_page(struct vm_area_struct *vma,
 			 */
 			set_page_stable_node(page, NULL);
 			mark_page_accessed(page);
-			/*
-			 * Page reclaim just frees a clean page with no dirty
-			 * ptes: make sure that the ksm page would be swapped.
-			 */
-			if (!PageDirty(page))
-				SetPageDirty(page);
 			err = 0;
 		} else if (pages_identical(page, kpage))
 			err = replace_page(vma, page, kpage, orig_pte);

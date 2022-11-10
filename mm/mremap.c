@@ -187,9 +187,6 @@ unsigned long move_page_tables(struct vm_area_struct *vma,
 	unsigned long mmun_start;	/* For mmu_notifiers */
 	unsigned long mmun_end;		/* For mmu_notifiers */
 
-	if (!len)
-		return 0;
-
 	old_end = old_addr + len;
 	flush_cache_range(vma, old_addr, old_end);
 
@@ -333,10 +330,6 @@ static unsigned long move_vma(struct vm_area_struct *vma,
 	 */
 	hiwater_vm = mm->hiwater_vm;
 	vm_stat_account(mm, vma->vm_flags, vma->vm_file, new_len>>PAGE_SHIFT);
-
-	/* Tell pfnmap has moved from this vma */
-	if (unlikely(vma->vm_flags & VM_PFNMAP))
-		untrack_pfn_moved(vma);
 
 	if (do_munmap(mm, old_addr, old_len) < 0) {
 		/* OOM: unable to split vma, just get accounts right */

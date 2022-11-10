@@ -1029,7 +1029,7 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_typ
 	mutex_lock(&zonelists_mutex);
 	if (!populated_zone(zone)) {
 		need_zonelists_rebuild = 1;
-		build_all_zonelists(NULL, zone, true);
+		build_all_zonelists(NULL, zone);
 	}
 
 	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
@@ -1055,7 +1055,7 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_typ
 	if (onlined_pages) {
 		node_states_set_node(zone_to_nid(zone), &arg);
 		if (need_zonelists_rebuild)
-			build_all_zonelists(NULL, NULL, true);
+			build_all_zonelists(NULL, NULL);
 		else
 			zone_pcp_update(zone);
 	}
@@ -1118,7 +1118,7 @@ static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
 	 * to access not-initialized zonelist, build here.
 	 */
 	mutex_lock(&zonelists_mutex);
-	build_all_zonelists(pgdat, NULL, true);
+	build_all_zonelists(pgdat, NULL);
 	mutex_unlock(&zonelists_mutex);
 
 	/*
@@ -1173,7 +1173,7 @@ int try_online_node(int nid)
 
 	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
 		mutex_lock(&zonelists_mutex);
-		build_all_zonelists(NULL, NULL, true);
+		build_all_zonelists(NULL, NULL);
 		mutex_unlock(&zonelists_mutex);
 	}
 
@@ -1487,7 +1487,7 @@ do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
 			if (WARN_ON(PageLRU(page)))
 				isolate_lru_page(page);
 			if (page_mapped(page))
-				try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS, NULL);
+				try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS);
 			continue;
 		}
 
@@ -1856,7 +1856,7 @@ repeat:
 	if (!populated_zone(zone)) {
 		zone_pcp_reset(zone);
 		mutex_lock(&zonelists_mutex);
-		build_all_zonelists(NULL, NULL, true);
+		build_all_zonelists(NULL, NULL);
 		mutex_unlock(&zonelists_mutex);
 	} else
 		zone_pcp_update(zone);

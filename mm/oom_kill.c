@@ -41,7 +41,7 @@
 
 int sysctl_panic_on_oom;
 int sysctl_oom_kill_allocating_task;
-int sysctl_oom_dump_tasks;
+int sysctl_oom_dump_tasks = 1;
 
 DEFINE_MUTEX(oom_lock);
 
@@ -791,9 +791,6 @@ void pagefault_out_of_memory(void)
 	};
 
 	if (mem_cgroup_oom_synchronize(true))
-		return;
-
-	if (fatal_signal_pending(current))
 		return;
 
 	if (!mutex_trylock(&oom_lock))

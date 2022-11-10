@@ -70,10 +70,6 @@
 #include <asm/tlbflush.h>
 #include <asm/pgtable.h>
 
-#ifdef CONFIG_PAGE_BOOST_RECORDING
-#include <linux/io_record.h>
-#endif
-
 #include "internal.h"
 
 #if defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS) && !defined(CONFIG_COMPILE_TEST)
@@ -133,7 +129,7 @@ static int __init init_zero_pfn(void)
 	zero_pfn = page_to_pfn(ZERO_PAGE(0));
 	return 0;
 }
-early_initcall(init_zero_pfn);
+core_initcall(init_zero_pfn);
 
 
 #if defined(SPLIT_RSS_COUNTING)
@@ -1695,11 +1691,11 @@ static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
 			unsigned long addr, unsigned long end,
 			unsigned long pfn, pgprot_t prot)
 {
-	pte_t *pte, *mapped_pte;
+	pte_t *pte;
 	spinlock_t *ptl;
 	int err = 0;
 
-	mapped_pte = pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
 	if (!pte)
 		return -ENOMEM;
 	arch_enter_lazy_mmu_mode();
@@ -1713,7 +1709,7 @@ static int remap_pte_range(struct mm_struct *mm, pmd_t *pmd,
 		pfn++;
 	} while (pte++, addr += PAGE_SIZE, addr != end);
 	arch_leave_lazy_mmu_mode();
-	pte_unmap_unlock(mapped_pte, ptl);
+	pte_unmap_unlock(pte - 1, ptl);
 	return err;
 }
 
@@ -3020,10 +3016,6 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		if (!pte_same(*pte, orig_pte))
 			goto unlock_out;
 		pte_unmap_unlock(pte, ptl);
-#ifdef CONFIG_PAGE_BOOST_RECORDING
-	} else if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT == 1) {
-		record_io_info(vma->vm_file, pgoff, 1);
-#endif
 	}
 
 	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
@@ -3226,6 +3218,9 @@ static int do_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	bool was_writable = pte_write(pte);
 	int flags = 0;
 
+	/* A PROT_NONE fault should not end up here */
+	BUG_ON(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)));
+
 	/*
 	* The "pte" at this point cannot be used safely without
 	* validation through pte_unmap_same(). It's of NUMA type but
@@ -3318,11 +3313,6 @@ static int wp_huge_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
 	return VM_FAULT_FALLBACK;
 }
 
-static inline bool vma_is_accessible(struct vm_area_struct *vma)
-{
-	return vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE);
-}
-
 /*
  * These routines also need to handle stuff like marking pages dirty
  * and/or accessed for architectures that don't do it in hardware (most
@@ -3369,7 +3359,7 @@ static int handle_pte_fault(struct mm_struct *mm,
 					pte, pmd, flags, entry);
 	}
 
-	if (pte_protnone(entry) && vma_is_accessible(vma))
+	if (pte_protnone(entry))
 		return do_numa_page(mm, vma, address, entry, pte, pmd);
 
 	ptl = pte_lockptr(mm, pmd);
@@ -3444,7 +3434,7 @@ static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 			if (pmd_trans_splitting(orig_pmd))
 				return 0;
 
-			if (pmd_protnone(orig_pmd) && vma_is_accessible(vma))
+			if (pmd_protnone(orig_pmd))
 				return do_huge_pmd_numa_page(mm, vma, address,
 							     orig_pmd, pmd);
 
@@ -3592,8 +3582,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
 }
 #endif /* __PAGETABLE_PMD_FOLDED */
 
-static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
+static int __follow_pte(struct mm_struct *mm, unsigned long address,
+		pte_t **ptepp, spinlock_t **ptlp)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -3610,20 +3600,11 @@ static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
 
 	pmd = pmd_offset(pud, address);
 	VM_BUG_ON(pmd_trans_huge(*pmd));
-
-	if (pmd_huge(*pmd)) {
-		if (!pmdpp)
-			goto out;
-
-		*ptlp = pmd_lock(mm, pmd);
-		if (pmd_huge(*pmd)) {
-			*pmdpp = pmd;
-			return 0;
-		}
-		spin_unlock(*ptlp);
-	}
-
 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+		goto out;
+
+	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
+	if (pmd_huge(*pmd))
 		goto out;
 
 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
@@ -3646,23 +3627,9 @@ static inline int follow_pte(struct mm_struct *mm, unsigned long address,
 
 	/* (void) is needed to make gcc happy */
 	(void) __cond_lock(*ptlp,
-			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
-					   ptlp)));
+			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
 	return res;
 }
-
-int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-{
-	int res;
-
-	/* (void) is needed to make gcc happy */
-	(void) __cond_lock(*ptlp,
-			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
-					   ptlp)));
-	return res;
-}
-EXPORT_SYMBOL(follow_pte_pmd);
 
 /**
  * follow_pfn - look up PFN at a user virtual address

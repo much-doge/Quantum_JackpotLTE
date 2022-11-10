@@ -3514,8 +3514,6 @@ __do_kmalloc_node(size_t size, gfp_t flags, int node, unsigned long caller)
 	struct kmem_cache *cachep;
 	void *ret;
 
-	if (unlikely(size > KMALLOC_MAX_CACHE_SIZE))
-		return NULL;
 	cachep = kmalloc_slab(size, flags);
 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
 		return cachep;
@@ -3551,8 +3549,6 @@ static __always_inline void *__do_kmalloc(size_t size, gfp_t flags,
 	struct kmem_cache *cachep;
 	void *ret;
 
-	if (unlikely(size > KMALLOC_MAX_CACHE_SIZE))
-		return NULL;
 	cachep = kmalloc_slab(size, flags);
 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
 		return cachep;
@@ -4208,12 +4204,8 @@ static int leaks_show(struct seq_file *m, void *p)
 	 * whole processing.
 	 */
 	do {
-		drain_cpu_caches(cachep);
-		/*
-		 * drain_cpu_caches() could make kmemleak_object and
-		 * debug_objects_cache dirty, so reset afterwards.
-		 */
 		set_store_user_clean(cachep);
+		drain_cpu_caches(cachep);
 
 		x[1] = 0;
 
