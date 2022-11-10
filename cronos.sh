@@ -18,7 +18,7 @@
 
 # Directory Contol
 CR_DIR=$(pwd)
-CR_TC=/home/miko/Documents/playground/linaro_-_12.2.1/bin/aarch64-linux-gnu-
+CR_TC=/home/miko/Documents/playground/linaro_-_7.5/bin/aarch64-linux-gnu-
 CR_DTS=arch/arm64/boot/dts
 CR_DTB=$CR_DIR/boot.img-dtb
 # Kernel Variables
