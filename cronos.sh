@@ -24,7 +24,7 @@ CR_DTB=$CR_DIR/boot.img-dtb
 # Kernel Variables
 CR_VERSION=V1.1.3
 CR_NAME=Quantum_Quackery
-CR_JOBS=5
+CR_JOBS=8
 CR_ANDROID=p
 CR_PLATFORM=9
 CR_ARCH=arm64
