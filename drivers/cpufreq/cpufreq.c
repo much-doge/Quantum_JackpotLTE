@@ -33,6 +33,9 @@
 #ifdef CONFIG_SMP
 #include <linux/sched.h>
 #endif
+/* Fix me
+#include <linux/battery_saver.h>
+*/
 #include <trace/events/power.h>
 
 static LIST_HEAD(cpufreq_policy_list);
@@ -639,8 +642,26 @@ static int cpufreq_parse_governor(char *str_governor, unsigned int *policy,
 			ret = request_module("cpufreq_%s", str_governor);
 			mutex_lock(&cpufreq_governor_mutex);
 
+			/*
+			 * At this point, if the governor was found via module
+			 * search, it will load it. However, if it didn't, we
+			 * are just going to exit without doing anything to
+			 * the governor. Most of the time, this is totally
+			 * fine; the one scenario where it's not is when a ROM
+			 * has a boot script that requests a governor that
+			 * exists in the default kernel but not in this one.
+			 * This kernel (and nearly every other Android kernel)
+			 * has the performance governor as default for boot
+			 * performance which is then changed to another,
+			 * usually interactive. So, instead of just exiting if
+			 * the requested governor wasn't found, let's try
+			 * falling back to interactive before falling out.
+			 */
+			
 			if (ret == 0)
 				t = find_governor(str_governor);
+			else
+				t = find_governor("interactive");
 		}
 
 		if (t != NULL) {
@@ -697,7 +718,11 @@ static ssize_t store_##file_name					\
 {									\
 	int ret, temp;							\
 	struct cpufreq_policy new_policy;				\
-									\
+/* Fix me									\
+	if (&policy->object == &policy->min &&				\
+			is_battery_saver_on())				\
+		return count;						\
+*/									\
 	memcpy(&new_policy, policy, sizeof(*policy));			\
 	new_policy.min = policy->user_policy.min;			\
 	new_policy.max = policy->user_policy.max;			\
@@ -2020,6 +2045,15 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
 	}
 
 out:
+	/*
+	 * This might look like a redundant call as we are checking it again
+	 * after finding index. But it is left intentionally for cases where
+	 * exactly same freq is called again and so we can save on few function
+	 * calls.
+	 */
+	if (target_freq == policy->cur)
+		retval = 0;
+	
 	return retval;
 }
 EXPORT_SYMBOL_GPL(__cpufreq_driver_target);
@@ -2376,8 +2410,8 @@ static int cpufreq_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
-    
-    if (!cpufreq_driver)
+
+	if (!cpufreq_driver)
 		return NOTIFY_OK;
 
 	switch (action & ~CPU_TASKS_FROZEN) {
@@ -2516,6 +2550,17 @@ int cpufreq_boost_enabled(void)
 EXPORT_SYMBOL_GPL(cpufreq_boost_enabled);
 
 /*********************************************************************
+ *               FREQUENCY INVARIANT ACCOUNTING SUPPORT              *
+ *********************************************************************/
+
+__weak void arch_set_freq_scale(struct cpumask *cpus,
+				unsigned long cur_freq,
+				unsigned long max_freq)
+{
+}
+EXPORT_SYMBOL_GPL(arch_set_freq_scale);
+
+/*********************************************************************
  *               REGISTER / UNREGISTER CPUFREQ DRIVER                *
  *********************************************************************/
 
@@ -2553,8 +2598,8 @@ int cpufreq_register_driver(struct cpufreq_driver *driver_data)
 		return -EINVAL;
 
 	pr_debug("trying to register driver %s\n", driver_data->name);
-    
-    /* Register for hotplug notifers before blocking hotplug. */
+	
+	/* Register for hotplug notifers before blocking hotplug. */
 	register_hotcpu_notifier(&cpufreq_cpu_notifier);
 
 	/* Protect against concurrent CPU online/offline. */
