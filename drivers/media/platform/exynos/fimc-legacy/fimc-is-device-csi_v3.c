@@ -1378,6 +1378,7 @@ static int csi_stream_on(struct v4l2_subdev *subdev,
 	int ret = 0;
 	u32 settle;
 	u32 __iomem *base_reg;
+	u32 dma_ch;
 	struct fimc_is_device_sensor *device = v4l2_get_subdev_hostdata(subdev);
 	struct fimc_is_device_csi_dma *csi_dma = csi->csi_dma;
 
@@ -1498,7 +1499,7 @@ static int csi_stream_on(struct v4l2_subdev *subdev,
 		csi->sw_checker = EXPECT_FRAME_START;
 		csi->overflow_cnt = 0;
 		csi_s_config_dma(csi, csi->vci[csi->active_vci].config);
-		memset(csi->pre_dma_enable, -1, ARRAY_SIZE(csi->pre_dma_enable));
+		memset(csi->pre_dma_enable, -1, sizeof(csi->pre_dma_enable));
 
 		/* for multi frame buffer setting for internal vc */
 		csis_s_vc_dma_multibuf(csi);
@@ -1578,20 +1579,14 @@ static int csi_stream_on(struct v4l2_subdev *subdev,
 	spin_lock(&csi_dma->barrier);
 	/* common dma register setting */
 	if (atomic_inc_return(&csi_dma->rcount) == 1) {
-		if (csi_dma->use_split) {
-			u32 dma_ch;
-
-			ret = get_dma(device, &dma_ch);
-			if (ret) {
-				spin_unlock(&csi_dma->barrier);
-				goto p_err;
-			}
-			/* set CSIS DMA SRAM - 10KB */
-			csi_hw_s_dma_common_dynamic(csi_dma->base_reg, 10 * SZ_1K, dma_ch);
-		} else {
-			csi_hw_s_dma_common(csi_dma->base_reg);
+		ret = get_dma(device, &dma_ch);
+		if (ret) {
+			err("fail to get dma info");
+			spin_unlock(&csi_dma->barrier);
+			goto p_err;
 		}
-		minfo("[CSI] set CSIS DMA(split:%d)\n", csi, csi_dma->use_split);
+		/* set CSIS DMA SRAM - 10KB */
+		csi_hw_s_dma_common_dynamic(csi_dma->base_reg, 10 * SZ_1K, dma_ch);
 	}
 	spin_unlock(&csi_dma->barrier);
 
@@ -1968,7 +1963,7 @@ int fimc_is_csi_probe(void *parent, u32 instance)
 		goto err_reg_v4l2_subdev;
 	}
 
-	info("[%d][FRT:D] %s(%d)\n", instance, __func__, ret);
+	info("[%d][FRT:D] %s-%d(%d)\n", instance, __func__, instance, ret);
 	return 0;
 
 err_reg_v4l2_subdev:
