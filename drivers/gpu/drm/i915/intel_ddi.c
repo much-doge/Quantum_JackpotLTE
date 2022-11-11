@@ -133,12 +133,12 @@ static const struct ddi_buf_trans skl_ddi_translations_dp[] = {
 	{ 0x00002016, 0x000000A0, 0x0 },
 	{ 0x00005012, 0x0000009B, 0x0 },
 	{ 0x00007011, 0x00000088, 0x0 },
-	{ 0x00009010, 0x000000C7, 0x0 },
+	{ 0x80009010, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 	{ 0x00002016, 0x0000009B, 0x0 },
 	{ 0x00005012, 0x00000088, 0x0 },
-	{ 0x00007011, 0x000000C7, 0x0 },
+	{ 0x80007011, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 	{ 0x00002016, 0x000000DF, 0x0 },
-	{ 0x00005012, 0x000000C7, 0x0 },
+	{ 0x80005012, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 };
 
 /* Skylake U */
@@ -146,12 +146,12 @@ static const struct ddi_buf_trans skl_u_ddi_translations_dp[] = {
 	{ 0x0000201B, 0x000000A2, 0x0 },
 	{ 0x00005012, 0x00000088, 0x0 },
 	{ 0x00007011, 0x00000087, 0x0 },
-	{ 0x80009010, 0x000000C7, 0x1 },	/* Uses I_boost level 0x1 */
+	{ 0x80009010, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 	{ 0x0000201B, 0x0000009D, 0x0 },
-	{ 0x00005012, 0x000000C7, 0x0 },
-	{ 0x00007011, 0x000000C7, 0x0 },
+	{ 0x80005012, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
+	{ 0x80007011, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 	{ 0x00002016, 0x00000088, 0x0 },
-	{ 0x00005012, 0x000000C7, 0x0 },
+	{ 0x80005012, 0x000000C0, 0x1 },	/* Uses I_boost level 0x1 */
 };
 
 /* Skylake Y */
@@ -159,12 +159,12 @@ static const struct ddi_buf_trans skl_y_ddi_translations_dp[] = {
 	{ 0x00000018, 0x000000A2, 0x0 },
 	{ 0x00005012, 0x00000088, 0x0 },
 	{ 0x00007011, 0x00000087, 0x0 },
-	{ 0x80009010, 0x000000C7, 0x3 },	/* Uses I_boost level 0x3 */
+	{ 0x80009010, 0x000000C0, 0x3 },	/* Uses I_boost level 0x3 */
 	{ 0x00000018, 0x0000009D, 0x0 },
-	{ 0x00005012, 0x000000C7, 0x0 },
-	{ 0x00007011, 0x000000C7, 0x0 },
+	{ 0x80005012, 0x000000C0, 0x3 },	/* Uses I_boost level 0x3 */
+	{ 0x80007011, 0x000000C0, 0x3 },	/* Uses I_boost level 0x3 */
 	{ 0x00000018, 0x00000088, 0x0 },
-	{ 0x00005012, 0x000000C7, 0x0 },
+	{ 0x80005012, 0x000000C0, 0x3 },	/* Uses I_boost level 0x3 */
 };
 
 /*
@@ -1120,10 +1120,10 @@ static void hsw_ddi_clock_get(struct intel_encoder *encoder,
 		link_clock = 270000;
 		break;
 	case PORT_CLK_SEL_WRPLL1:
-		link_clock = hsw_ddi_calc_wrpll_link(dev_priv, WRPLL_CTL1);
+		link_clock = hsw_ddi_calc_wrpll_link(dev_priv, WRPLL_CTL(0));
 		break;
 	case PORT_CLK_SEL_WRPLL2:
-		link_clock = hsw_ddi_calc_wrpll_link(dev_priv, WRPLL_CTL2);
+		link_clock = hsw_ddi_calc_wrpll_link(dev_priv, WRPLL_CTL(1));
 		break;
 	case PORT_CLK_SEL_SPLL:
 		pll = I915_READ(SPLL_CTL) & SPLL_PLL_FREQ_MASK;
@@ -2106,21 +2106,21 @@ static void skl_ddi_set_iboost(struct drm_device *dev, u32 level,
 			iboost = dp_iboost;
 		} else {
 			ddi_translations = skl_get_buf_trans_dp(dev, &n_entries);
-			iboost = ddi_translations[port].i_boost;
+			iboost = ddi_translations[level].i_boost;
 		}
 	} else if (type == INTEL_OUTPUT_EDP) {
 		if (dp_iboost) {
 			iboost = dp_iboost;
 		} else {
 			ddi_translations = skl_get_buf_trans_edp(dev, &n_entries);
-			iboost = ddi_translations[port].i_boost;
+			iboost = ddi_translations[level].i_boost;
 		}
 	} else if (type == INTEL_OUTPUT_HDMI) {
 		if (hdmi_iboost) {
 			iboost = hdmi_iboost;
 		} else {
 			ddi_translations = skl_get_buf_trans_hdmi(dev, &n_entries);
-			iboost = ddi_translations[port].i_boost;
+			iboost = ddi_translations[level].i_boost;
 		}
 	} else {
 		return;
@@ -2575,13 +2575,13 @@ static const struct skl_dpll_regs skl_dpll_regs[3] = {
 	},
 	{
 		/* DPLL 2 */
-		.ctl = WRPLL_CTL1,
+		.ctl = WRPLL_CTL(0),
 		.cfgcr1 = DPLL_CFGCR1(SKL_DPLL2),
 		.cfgcr2 = DPLL_CFGCR2(SKL_DPLL2),
 	},
 	{
 		/* DPLL 3 */
-		.ctl = WRPLL_CTL2,
+		.ctl = WRPLL_CTL(1),
 		.cfgcr1 = DPLL_CFGCR1(SKL_DPLL3),
 		.cfgcr2 = DPLL_CFGCR2(SKL_DPLL3),
 	},
@@ -3013,10 +3013,10 @@ void intel_ddi_pll_init(struct drm_device *dev)
 
 		cdclk_freq = dev_priv->display.get_display_clock_speed(dev);
 		dev_priv->skl_boot_cdclk = cdclk_freq;
+		if (skl_sanitize_cdclk(dev_priv))
+			DRM_DEBUG_KMS("Sanitized cdclk programmed by pre-os\n");
 		if (!(I915_READ(LCPLL1_CTL) & LCPLL_PLL_ENABLE))
 			DRM_ERROR("LCPLL1 is disabled\n");
-		else
-			intel_display_power_get(dev_priv, POWER_DOMAIN_PLLS);
 	} else if (IS_BROXTON(dev)) {
 		broxton_init_cdclk(dev);
 		broxton_ddi_phy_init(dev);
@@ -3293,6 +3293,20 @@ void intel_ddi_init(struct drm_device *dev, enum port port)
 	intel_dig_port->saved_port_bits = I915_READ(DDI_BUF_CTL(port)) &
 					  (DDI_BUF_PORT_REVERSAL |
 					   DDI_A_4_LANES);
+
+	/*
+	 * Bspec says that DDI_A_4_LANES is the only supported configuration
+	 * for Broxton.  Yet some BIOS fail to set this bit on port A if eDP
+	 * wasn't lit up at boot.  Force this bit on in our internal
+	 * configuration so that we use the proper lane count for our
+	 * calculations.
+	 */
+	if (IS_BROXTON(dev) && port == PORT_A) {
+		if (!(intel_dig_port->saved_port_bits & DDI_A_4_LANES)) {
+			DRM_DEBUG_KMS("BXT BIOS forgot to set DDI_A_4_LANES for port A; fixing\n");
+			intel_dig_port->saved_port_bits |= DDI_A_4_LANES;
+		}
+	}
 
 	intel_encoder->type = INTEL_OUTPUT_UNKNOWN;
 	intel_encoder->crtc_mask = (1 << 0) | (1 << 1) | (1 << 2);

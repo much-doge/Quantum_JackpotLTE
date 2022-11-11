@@ -756,6 +756,13 @@ bool jd_submit_atom(struct kbase_context *kctx, const struct base_jd_atom_v2 *us
 
 	katom->age = kctx->age_count++;
 
+	if (!(katom->core_req & BASE_JD_REQ_SOFT_JOB)) {
+		if (!kbase_js_is_atom_valid(kctx->kbdev, katom)) {
+			katom->event_code = BASE_JD_EVENT_JOB_INVALID;
+			return jd_done_nolock(katom, NULL);
+		}
+	}
+
 	INIT_LIST_HEAD(&katom->queue);
 	INIT_LIST_HEAD(&katom->jd_item);
 #ifdef CONFIG_MALI_DMA_FENCE
@@ -1408,7 +1415,7 @@ void kbase_jd_done(struct kbase_jd_atom *katom, int slot_nr,
 
 	atomic_inc(&kctx->work_count);
 
-#ifdef CONFIG_DEBUG_FS
+#if 0
 	/* a failed job happened and is waiting for dumping*/
 	if (!katom->will_fail_event_code &&
 			kbase_debug_job_fault_process(katom, katom->event_code))
@@ -1486,7 +1493,7 @@ void kbase_jd_zap_context(struct kbase_context *kctx)
 	flush_workqueue(kctx->dma_fence.wq);
 #endif
 
-#ifdef CONFIG_DEBUG_FS
+#if 0
 	kbase_debug_job_fault_kctx_unblock(kctx);
 #endif
 

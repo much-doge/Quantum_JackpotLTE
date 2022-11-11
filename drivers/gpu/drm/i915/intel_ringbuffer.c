@@ -735,7 +735,7 @@ static int intel_ring_workarounds_emit(struct drm_i915_gem_request *req)
 
 	intel_ring_emit(ring, MI_LOAD_REGISTER_IMM(w->count));
 	for (i = 0; i < w->count; i++) {
-		intel_ring_emit(ring, w->reg[i].addr);
+		intel_ring_emit_reg(ring, w->reg[i].addr);
 		intel_ring_emit(ring, w->reg[i].value);
 	}
 	intel_ring_emit(ring, MI_NOOP);
@@ -1325,7 +1325,7 @@ static int gen6_signal(struct drm_i915_gem_request *signaller_req,
 		if (mbox_reg != GEN6_NOSYNC) {
 			u32 seqno = i915_gem_request_get_seqno(signaller_req);
 			intel_ring_emit(signaller, MI_LOAD_REGISTER_IMM(1));
-			intel_ring_emit(signaller, mbox_reg);
+			intel_ring_emit_reg(signaller, mbox_reg);
 			intel_ring_emit(signaller, seqno);
 		}
 	}
@@ -2017,9 +2017,33 @@ static int init_phys_status_page(struct intel_engine_cs *ring)
 
 void intel_unpin_ringbuffer_obj(struct intel_ringbuffer *ringbuf)
 {
-	iounmap(ringbuf->virtual_start);
+	if (HAS_LLC(ringbuf->obj->base.dev) && !ringbuf->obj->stolen)
+		vunmap(ringbuf->virtual_start);
+	else
+		iounmap(ringbuf->virtual_start);
 	ringbuf->virtual_start = NULL;
 	i915_gem_object_ggtt_unpin(ringbuf->obj);
+}
+
+static u32 *vmap_obj(struct drm_i915_gem_object *obj)
+{
+	struct sg_page_iter sg_iter;
+	struct page **pages;
+	void *addr;
+	int i;
+
+	pages = drm_malloc_ab(obj->base.size >> PAGE_SHIFT, sizeof(*pages));
+	if (pages == NULL)
+		return NULL;
+
+	i = 0;
+	for_each_sg_page(obj->pages->sgl, &sg_iter, obj->pages->nents, 0)
+		pages[i++] = sg_page_iter_page(&sg_iter);
+
+	addr = vmap(pages, i, 0, PAGE_KERNEL);
+	drm_free_large(pages);
+
+	return addr;
 }
 
 int intel_pin_and_map_ringbuffer_obj(struct drm_device *dev,
@@ -2029,21 +2053,39 @@ int intel_pin_and_map_ringbuffer_obj(struct drm_device *dev,
 	struct drm_i915_gem_object *obj = ringbuf->obj;
 	int ret;
 
-	ret = i915_gem_obj_ggtt_pin(obj, PAGE_SIZE, PIN_MAPPABLE);
-	if (ret)
-		return ret;
+	if (HAS_LLC(dev_priv) && !obj->stolen) {
+		ret = i915_gem_obj_ggtt_pin(obj, PAGE_SIZE, 0);
+		if (ret)
+			return ret;
 
-	ret = i915_gem_object_set_to_gtt_domain(obj, true);
-	if (ret) {
-		i915_gem_object_ggtt_unpin(obj);
-		return ret;
-	}
+		ret = i915_gem_object_set_to_cpu_domain(obj, true);
+		if (ret) {
+			i915_gem_object_ggtt_unpin(obj);
+			return ret;
+		}
 
-	ringbuf->virtual_start = ioremap_wc(dev_priv->gtt.mappable_base +
-			i915_gem_obj_ggtt_offset(obj), ringbuf->size);
-	if (ringbuf->virtual_start == NULL) {
-		i915_gem_object_ggtt_unpin(obj);
-		return -EINVAL;
+		ringbuf->virtual_start = vmap_obj(obj);
+		if (ringbuf->virtual_start == NULL) {
+			i915_gem_object_ggtt_unpin(obj);
+			return -ENOMEM;
+		}
+	} else {
+		ret = i915_gem_obj_ggtt_pin(obj, PAGE_SIZE, PIN_MAPPABLE);
+		if (ret)
+			return ret;
+
+		ret = i915_gem_object_set_to_gtt_domain(obj, true);
+		if (ret) {
+			i915_gem_object_ggtt_unpin(obj);
+			return ret;
+		}
+
+		ringbuf->virtual_start = ioremap_wc(dev_priv->gtt.mappable_base +
+						    i915_gem_obj_ggtt_offset(obj), ringbuf->size);
+		if (ringbuf->virtual_start == NULL) {
+			i915_gem_object_ggtt_unpin(obj);
+			return -EINVAL;
+		}
 	}
 
 	return 0;
@@ -2089,10 +2131,14 @@ intel_engine_create_ringbuffer(struct intel_engine_cs *engine, int size)
 	int ret;
 
 	ring = kzalloc(sizeof(*ring), GFP_KERNEL);
-	if (ring == NULL)
+	if (ring == NULL) {
+		DRM_DEBUG_DRIVER("Failed to allocate ringbuffer %s\n",
+				 engine->name);
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ring->ring = engine;
+	list_add(&ring->link, &engine->buffers);
 
 	ring->size = size;
 	/* Workaround an erratum on the i830 which causes a hang if
@@ -2108,8 +2154,9 @@ intel_engine_create_ringbuffer(struct intel_engine_cs *engine, int size)
 
 	ret = intel_alloc_ringbuffer_obj(engine->dev, ring);
 	if (ret) {
-		DRM_ERROR("Failed to allocate ringbuffer %s: %d\n",
-			  engine->name, ret);
+		DRM_DEBUG_DRIVER("Failed to allocate ringbuffer %s: %d\n",
+				 engine->name, ret);
+		list_del(&ring->link);
 		kfree(ring);
 		return ERR_PTR(ret);
 	}
@@ -2121,6 +2168,7 @@ void
 intel_ringbuffer_free(struct intel_ringbuffer *ring)
 {
 	intel_destroy_ringbuffer_obj(ring);
+	list_del(&ring->link);
 	kfree(ring);
 }
 
@@ -2136,6 +2184,7 @@ static int intel_init_ring_buffer(struct drm_device *dev,
 	INIT_LIST_HEAD(&ring->active_list);
 	INIT_LIST_HEAD(&ring->request_list);
 	INIT_LIST_HEAD(&ring->execlist_queue);
+	INIT_LIST_HEAD(&ring->buffers);
 	i915_gem_batch_pool_init(dev, &ring->batch_pool);
 	memset(ring->semaphore.sync_seqno, 0, sizeof(ring->semaphore.sync_seqno));
 

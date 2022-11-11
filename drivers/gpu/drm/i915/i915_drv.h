@@ -57,7 +57,7 @@
 
 #define DRIVER_NAME		"i915"
 #define DRIVER_DESC		"Intel Graphics"
-#define DRIVER_DATE		"20151010"
+#define DRIVER_DATE		"20151120"
 
 #undef WARN_ON
 /* Many gcc seem to no see through this and fall over :( */
@@ -180,15 +180,11 @@ enum intel_display_power_domain {
 	POWER_DOMAIN_TRANSCODER_B,
 	POWER_DOMAIN_TRANSCODER_C,
 	POWER_DOMAIN_TRANSCODER_EDP,
-	POWER_DOMAIN_PORT_DDI_A_2_LANES,
-	POWER_DOMAIN_PORT_DDI_A_4_LANES,
-	POWER_DOMAIN_PORT_DDI_B_2_LANES,
-	POWER_DOMAIN_PORT_DDI_B_4_LANES,
-	POWER_DOMAIN_PORT_DDI_C_2_LANES,
-	POWER_DOMAIN_PORT_DDI_C_4_LANES,
-	POWER_DOMAIN_PORT_DDI_D_2_LANES,
-	POWER_DOMAIN_PORT_DDI_D_4_LANES,
-	POWER_DOMAIN_PORT_DDI_E_2_LANES,
+	POWER_DOMAIN_PORT_DDI_A_LANES,
+	POWER_DOMAIN_PORT_DDI_B_LANES,
+	POWER_DOMAIN_PORT_DDI_C_LANES,
+	POWER_DOMAIN_PORT_DDI_D_LANES,
+	POWER_DOMAIN_PORT_DDI_E_LANES,
 	POWER_DOMAIN_PORT_DSI,
 	POWER_DOMAIN_PORT_CRT,
 	POWER_DOMAIN_PORT_OTHER,
@@ -200,6 +196,7 @@ enum intel_display_power_domain {
 	POWER_DOMAIN_AUX_C,
 	POWER_DOMAIN_AUX_D,
 	POWER_DOMAIN_GMBUS,
+	POWER_DOMAIN_MODESET,
 	POWER_DOMAIN_INIT,
 
 	POWER_DOMAIN_NUM,
@@ -289,7 +286,7 @@ struct i915_hotplug {
 	list_for_each_entry(intel_plane,				\
 			    &(dev)->mode_config.plane_list,		\
 			    base.head)					\
-		if ((intel_plane)->pipe == (intel_crtc)->pipe)
+		for_each_if ((intel_plane)->pipe == (intel_crtc)->pipe)
 
 #define for_each_intel_crtc(dev, intel_crtc) \
 	list_for_each_entry(intel_crtc, &dev->mode_config.crtc_list, base.head)
@@ -306,15 +303,15 @@ struct i915_hotplug {
 
 #define for_each_encoder_on_crtc(dev, __crtc, intel_encoder) \
 	list_for_each_entry((intel_encoder), &(dev)->mode_config.encoder_list, base.head) \
-		if ((intel_encoder)->base.crtc == (__crtc))
+		for_each_if ((intel_encoder)->base.crtc == (__crtc))
 
 #define for_each_connector_on_encoder(dev, __encoder, intel_connector) \
 	list_for_each_entry((intel_connector), &(dev)->mode_config.connector_list, base.head) \
-		if ((intel_connector)->base.encoder == (__encoder))
+		for_each_if ((intel_connector)->base.encoder == (__encoder))
 
 #define for_each_power_domain(domain, mask)				\
 	for ((domain) = 0; (domain) < POWER_DOMAIN_NUM; (domain)++)	\
-		if ((1 << (domain)) & (mask))
+		for_each_if ((1 << (domain)) & (mask))
 
 struct drm_i915_private;
 struct i915_mm_struct;
@@ -631,11 +628,9 @@ struct drm_i915_display_funcs {
 			  int target, int refclk,
 			  struct dpll *match_clock,
 			  struct dpll *best_clock);
+	int (*compute_pipe_wm)(struct intel_crtc *crtc,
+			       struct drm_atomic_state *state);
 	void (*update_wm)(struct drm_crtc *crtc);
-	void (*update_sprite_wm)(struct drm_plane *plane,
-				 struct drm_crtc *crtc,
-				 uint32_t sprite_width, uint32_t sprite_height,
-				 int pixel_size, bool enable, bool scaled);
 	int (*modeset_calc_cdclk)(struct drm_atomic_state *state);
 	void (*modeset_commit_cdclk)(struct drm_atomic_state *state);
 	/* Returns the active state of the crtc, and if the crtc is active,
@@ -735,25 +730,24 @@ struct intel_uncore {
 	for ((i__) = 0, (domain__) = &(dev_priv__)->uncore.fw_domain[0]; \
 	     (i__) < FW_DOMAIN_ID_COUNT; \
 	     (i__)++, (domain__) = &(dev_priv__)->uncore.fw_domain[i__]) \
-		if (((mask__) & (dev_priv__)->uncore.fw_domains) & (1 << (i__)))
+		for_each_if (((mask__) & (dev_priv__)->uncore.fw_domains) & (1 << (i__)))
 
 #define for_each_fw_domain(domain__, dev_priv__, i__) \
 	for_each_fw_domain_mask(domain__, FORCEWAKE_ALL, dev_priv__, i__)
 
-enum csr_state {
-	FW_UNINITIALIZED = 0,
-	FW_LOADED,
-	FW_FAILED
-};
+#define CSR_VERSION(major, minor)	((major) << 16 | (minor))
+#define CSR_VERSION_MAJOR(version)	((version) >> 16)
+#define CSR_VERSION_MINOR(version)	((version) & 0xffff)
 
 struct intel_csr {
+	struct work_struct work;
 	const char *fw_path;
 	uint32_t *dmc_payload;
 	uint32_t dmc_fw_size;
+	uint32_t version;
 	uint32_t mmio_count;
 	uint32_t mmioaddr[8];
 	uint32_t mmiodata[8];
-	enum csr_state state;
 };
 
 #define DEV_INFO_FOR_EACH_FLAG(func, sep) \
@@ -771,6 +765,7 @@ struct intel_csr {
 	func(is_valleyview) sep \
 	func(is_haswell) sep \
 	func(is_skylake) sep \
+	func(is_broxton) sep \
 	func(is_preliminary) sep \
 	func(has_fbc) sep \
 	func(has_pipe_cxsr) sep \
@@ -935,24 +930,7 @@ struct i915_fbc {
 		struct drm_framebuffer *fb;
 	} *fbc_work;
 
-	enum no_fbc_reason {
-		FBC_OK, /* FBC is enabled */
-		FBC_UNSUPPORTED, /* FBC is not supported by this chipset */
-		FBC_NO_OUTPUT, /* no outputs enabled to compress */
-		FBC_STOLEN_TOO_SMALL, /* not enough space for buffers */
-		FBC_UNSUPPORTED_MODE, /* interlace or doublescanned mode */
-		FBC_MODE_TOO_LARGE, /* mode too large for compression */
-		FBC_BAD_PLANE, /* fbc not supported on plane */
-		FBC_NOT_TILED, /* buffer not tiled */
-		FBC_MULTIPLE_PIPES, /* more than one pipe active */
-		FBC_MODULE_PARAM,
-		FBC_CHIP_DEFAULT, /* disabled by default on this chip */
-		FBC_ROTATION, /* rotation is not supported */
-		FBC_IN_DBG_MASTER, /* kernel debugger is active */
-		FBC_BAD_STRIDE, /* stride is not supported */
-		FBC_PIXEL_RATE, /* pixel rate is too big */
-		FBC_PIXEL_FORMAT /* pixel format is invalid */
-	} no_fbc_reason;
+	const char *no_fbc_reason;
 
 	bool (*fbc_enabled)(struct drm_i915_private *dev_priv);
 	void (*enable_fbc)(struct intel_crtc *crtc);
@@ -1705,6 +1683,13 @@ struct i915_execbuffer_params {
 	struct drm_i915_gem_request     *request;
 };
 
+/* used in computing the new watermarks state */
+struct intel_wm_config {
+	unsigned int num_pipes_active;
+	bool sprites_enabled;
+	bool sprites_scaled;
+};
+
 struct drm_i915_private {
 	struct drm_device *dev;
 	struct kmem_cache *objects;
@@ -1719,14 +1704,13 @@ struct drm_i915_private {
 
 	struct intel_uncore uncore;
 
+	struct mutex tlb_invalidate_lock;
+
 	struct i915_virtual_gpu vgpu;
 
 	struct intel_guc guc;
 
 	struct intel_csr csr;
-
-	/* Display CSR-related protection */
-	struct mutex csr_lock;
 
 	struct intel_gmbus gmbus[GMBUS_NUM_PINS];
 
@@ -1741,6 +1725,8 @@ struct drm_i915_private {
 
 	/* MMIO base address for MIPI regs */
 	uint32_t mipi_mmio_base;
+
+	uint32_t psr_mmio_base;
 
 	wait_queue_head_t gmbus_wait_queue;
 
@@ -1929,6 +1915,9 @@ struct drm_i915_private {
 		 */
 		uint16_t skl_latency[8];
 
+		/* Committed wm config */
+		struct intel_wm_config config;
+
 		/*
 		 * The skl_wm_values structure is a bit too big for stack
 		 * allocation, so we keep the staging struct where we store
@@ -1987,7 +1976,7 @@ static inline struct drm_i915_private *guc_to_i915(struct intel_guc *guc)
 /* Iterate over initialised rings */
 #define for_each_ring(ring__, dev_priv__, i__) \
 	for ((i__) = 0; (i__) < I915_NUM_RINGS; (i__)++) \
-		if (((ring__) = &(dev_priv__)->ring[(i__)]), intel_ring_initialized((ring__)))
+		for_each_if ((((ring__) = &(dev_priv__)->ring[(i__)]), intel_ring_initialized((ring__))))
 
 enum hdmi_force_audio {
 	HDMI_AUDIO_OFF_DVI = -2,	/* no aux data for HDMI-DVI converter */
@@ -2065,6 +2054,9 @@ struct drm_i915_gem_object {
 	 * inactive (ready to be unbound) list.
 	 */
 	unsigned int active:I915_NUM_RINGS;
+
+	unsigned long flags;
+#define I915_BO_WAS_BOUND_BIT    0
 
 	/**
 	 * This is set if the object has been written to since last bound
@@ -2476,7 +2468,7 @@ struct drm_i915_cmd_table {
 #define IS_HASWELL(dev)	(INTEL_INFO(dev)->is_haswell)
 #define IS_BROADWELL(dev)	(!INTEL_INFO(dev)->is_valleyview && IS_GEN8(dev))
 #define IS_SKYLAKE(dev)	(INTEL_INFO(dev)->is_skylake)
-#define IS_BROXTON(dev)	(!INTEL_INFO(dev)->is_skylake && IS_GEN9(dev))
+#define IS_BROXTON(dev)		(INTEL_INFO(dev)->is_broxton)
 #define IS_MOBILE(dev)		(INTEL_INFO(dev)->is_mobile)
 #define IS_HSW_EARLY_SDV(dev)	(IS_HASWELL(dev) && \
 				 (INTEL_DEVID(dev) & 0xFF00) == 0x0C00)
@@ -2511,16 +2503,16 @@ struct drm_i915_cmd_table {
 
 #define IS_PRELIMINARY_HW(intel_info) ((intel_info)->is_preliminary)
 
-#define SKL_REVID_A0		(0x0)
-#define SKL_REVID_B0		(0x1)
-#define SKL_REVID_C0		(0x2)
-#define SKL_REVID_D0		(0x3)
-#define SKL_REVID_E0		(0x4)
-#define SKL_REVID_F0		(0x5)
+#define SKL_REVID_A0		0x0
+#define SKL_REVID_B0		0x1
+#define SKL_REVID_C0		0x2
+#define SKL_REVID_D0		0x3
+#define SKL_REVID_E0		0x4
+#define SKL_REVID_F0		0x5
 
-#define BXT_REVID_A0		(0x0)
-#define BXT_REVID_B0		(0x3)
-#define BXT_REVID_C0		(0x9)
+#define BXT_REVID_A0		0x0
+#define BXT_REVID_B0		0x3
+#define BXT_REVID_C0		0x9
 
 /*
  * The genX designation typically refers to the render engine, so render
@@ -2717,7 +2709,6 @@ extern unsigned long i915_mch_val(struct drm_i915_private *dev_priv);
 extern unsigned long i915_gfx_val(struct drm_i915_private *dev_priv);
 extern void i915_update_gfx_val(struct drm_i915_private *dev_priv);
 int vlv_force_gfx_clock(struct drm_i915_private *dev_priv, bool on);
-void i915_firmware_load_error_print(const char *fw_path, int err);
 
 /* intel_hotplug.c */
 void intel_hpd_irq_handler(struct drm_device *dev, u32 pin_mask, u32 long_mask);
@@ -2774,17 +2765,47 @@ void valleyview_disable_display_irqs(struct drm_i915_private *dev_priv);
 void i915_hotplug_interrupt_update(struct drm_i915_private *dev_priv,
 				   uint32_t mask,
 				   uint32_t bits);
-void
-ironlake_enable_display_irq(struct drm_i915_private *dev_priv, u32 mask);
-void
-ironlake_disable_display_irq(struct drm_i915_private *dev_priv, u32 mask);
+void ilk_update_display_irq(struct drm_i915_private *dev_priv,
+			    uint32_t interrupt_mask,
+			    uint32_t enabled_irq_mask);
+static inline void
+ilk_enable_display_irq(struct drm_i915_private *dev_priv, uint32_t bits)
+{
+	ilk_update_display_irq(dev_priv, bits, bits);
+}
+static inline void
+ilk_disable_display_irq(struct drm_i915_private *dev_priv, uint32_t bits)
+{
+	ilk_update_display_irq(dev_priv, bits, 0);
+}
+void bdw_update_pipe_irq(struct drm_i915_private *dev_priv,
+			 enum pipe pipe,
+			 uint32_t interrupt_mask,
+			 uint32_t enabled_irq_mask);
+static inline void bdw_enable_pipe_irq(struct drm_i915_private *dev_priv,
+				       enum pipe pipe, uint32_t bits)
+{
+	bdw_update_pipe_irq(dev_priv, pipe, bits, bits);
+}
+static inline void bdw_disable_pipe_irq(struct drm_i915_private *dev_priv,
+					enum pipe pipe, uint32_t bits)
+{
+	bdw_update_pipe_irq(dev_priv, pipe, bits, 0);
+}
 void ibx_display_interrupt_update(struct drm_i915_private *dev_priv,
 				  uint32_t interrupt_mask,
 				  uint32_t enabled_irq_mask);
-#define ibx_enable_display_interrupt(dev_priv, bits) \
-	ibx_display_interrupt_update((dev_priv), (bits), (bits))
-#define ibx_disable_display_interrupt(dev_priv, bits) \
-	ibx_display_interrupt_update((dev_priv), (bits), 0)
+static inline void
+ibx_enable_display_interrupt(struct drm_i915_private *dev_priv, uint32_t bits)
+{
+	ibx_display_interrupt_update(dev_priv, bits, bits);
+}
+static inline void
+ibx_disable_display_interrupt(struct drm_i915_private *dev_priv, uint32_t bits)
+{
+	ibx_display_interrupt_update(dev_priv, bits, 0);
+}
+
 
 /* i915_gem.c */
 int i915_gem_create_ioctl(struct drm_device *dev, void *data,
@@ -3027,8 +3048,6 @@ i915_gem_object_set_to_cpu_domain(struct drm_i915_gem_object *obj, bool write);
 int __must_check
 i915_gem_object_pin_to_display_plane(struct drm_i915_gem_object *obj,
 				     u32 alignment,
-				     struct intel_engine_cs *pipelined,
-				     struct drm_i915_gem_request **pipelined_request,
 				     const struct i915_ggtt_view *view);
 void i915_gem_object_unpin_from_display_plane(struct drm_i915_gem_object *obj,
 					      const struct i915_ggtt_view *view);
@@ -3389,7 +3408,6 @@ extern void intel_set_rps(struct drm_device *dev, u8 val);
 extern void intel_set_memory_cxsr(struct drm_i915_private *dev_priv,
 				  bool enable);
 extern void intel_detect_pch(struct drm_device *dev);
-extern int intel_trans_dp_port_sel(struct drm_crtc *crtc);
 extern int intel_enable_rc6(const struct drm_device *dev);
 
 extern bool i915_semaphore_is_enabled(struct drm_device *dev);
@@ -3472,6 +3490,32 @@ int intel_freq_opcode(struct drm_i915_private *dev_priv, int val);
 #define POSTING_READ(reg)	(void)I915_READ_NOTRACE(reg)
 #define POSTING_READ16(reg)	(void)I915_READ16_NOTRACE(reg)
 
+#define __raw_read(x, s) \
+static inline uint##x##_t __raw_i915_read##x(struct drm_i915_private *dev_priv, \
+					     uint32_t reg) \
+{ \
+	return read##s(dev_priv->regs + reg); \
+}
+
+#define __raw_write(x, s) \
+static inline void __raw_i915_write##x(struct drm_i915_private *dev_priv, \
+				       uint32_t reg, uint##x##_t val) \
+{ \
+	write##s(val, dev_priv->regs + reg); \
+}
+__raw_read(8, b)
+__raw_read(16, w)
+__raw_read(32, l)
+__raw_read(64, q)
+
+__raw_write(8, b)
+__raw_write(16, w)
+__raw_write(32, l)
+__raw_write(64, q)
+
+#undef __raw_read
+#undef __raw_write
+
 /* These are untraced mmio-accessors that are only valid to be used inside
  * criticial sections inside IRQ handlers where forcewake is explicitly
  * controlled.
@@ -3479,8 +3523,8 @@ int intel_freq_opcode(struct drm_i915_private *dev_priv, int val);
  * Note: Should only be used between intel_uncore_forcewake_irqlock() and
  * intel_uncore_forcewake_irqunlock().
  */
-#define I915_READ_FW(reg__) readl(dev_priv->regs + (reg__))
-#define I915_WRITE_FW(reg__, val__) writel(val__, dev_priv->regs + (reg__))
+#define I915_READ_FW(reg__) __raw_i915_read32(dev_priv, (reg__))
+#define I915_WRITE_FW(reg__, val__) __raw_i915_write32(dev_priv, (reg__), (val__))
 #define POSTING_READ_FW(reg__) (void)I915_READ_FW(reg__)
 
 /* "Broadcast RGB" property */
