@@ -159,6 +159,7 @@
 			cpu-idle-states = <&BOOTCL_CPU_SLEEP>;
 			#cooling-cells = <2>; /* min followed by max */
 			logical-id = <0>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu1:cpu@101 {
@@ -168,6 +169,7 @@
 			enable-method = "psci";
 			cpu-idle-states = <&BOOTCL_CPU_SLEEP>;
 			logical-id = <1>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu2:cpu@102 {
@@ -177,6 +179,7 @@
 			enable-method = "psci";
 			cpu-idle-states = <&BOOTCL_CPU_SLEEP>;
 			logical-id = <2>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu3:cpu@103 {
@@ -186,6 +189,7 @@
 			enable-method = "psci";
 			cpu-idle-states = <&BOOTCL_CPU_SLEEP>;
 			logical-id = <3>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu4:cpu@200 {
@@ -196,6 +200,7 @@
 			cpu-idle-states = <&NONBOOTCL_CPU_SLEEP>;
 			logical-id = <4>;
 			sched_skip = <1>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu5:cpu@201 {
@@ -206,6 +211,7 @@
 			cpu-idle-states = <&NONBOOTCL_CPU_SLEEP>;
 			logical-id = <5>;
 			sched_skip = <1>;
+			clock-frequency = <1794000000>;
 		};
 
 		cpu6: cpu@0 {
@@ -216,6 +222,7 @@
 			cpu-idle-states = <&NONBOOTCL_CPU_SLEEP>;
 			#cooling-cells = <2>; /* min followed by max */
 			logical-id = <6>;
+			clock-frequency = <2392000000>;
 		};
 
 		cpu7:cpu@1 {
@@ -225,6 +232,7 @@
 			enable-method = "psci";
 			cpu-idle-states = <&NONBOOTCL_CPU_SLEEP>;
 			logical-id = <7>;
+			clock-frequency = <2392000000>;
 		};
 
 		idle-states {
