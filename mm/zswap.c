@@ -104,11 +104,7 @@ module_param_cb(enabled, &zswap_enabled_param_ops, &zswap_enabled, 0644);
 
 /* Crypto compressor to use */
 #define ZSWAP_COMPRESSOR_DEFAULT "lzo"
-#if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
-#define ZSWAP_COMPRESSOR "zstd"
-#else
 #define ZSWAP_COMPRESSOR "lz4"
-#endif
 static char *zswap_compressor = ZSWAP_COMPRESSOR;
 static int zswap_compressor_param_set(const char *,
 				      const struct kernel_param *);
@@ -1366,7 +1362,7 @@ static int zswap_frontswap_store(unsigned type, pgoff_t offset,
 	len += sizeof(struct zswap_header);
 #endif
 	ret = zpool_malloc(entry->pool->zpool, len,
-			   __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM | __GFP_MOVABLE | __GFP_CMA,
+			   __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM,
 			   &handle);
 	if (ret == -ENOSPC) {
 		zswap_reject_compress_poor++;
