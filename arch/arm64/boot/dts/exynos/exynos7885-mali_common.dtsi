@@ -18,7 +18,7 @@
 		             <0 158 0>;
 		interrupt-names = "JOB", "MMU", "GPU";
 		/*
-		mali-supply = <&vdd_g3d>;
+		mali-supply = <vdd_g3d>;
 		*/
 		g3d_cmu_cal_id = <ACPM_DVFS_G3D>;
 		samsung,power-domain = <&pd_g3d>;
