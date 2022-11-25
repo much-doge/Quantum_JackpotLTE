@@ -6,4 +6,4 @@ obj-$(CONFIG_VIDEO_EXYNOS_SMFC)		+= smfc/
 obj-$(CONFIG_VIDEO_EXYNOS_FIMC_LEGACY)	+= fimc-legacy/
 obj-$(CONFIG_VIDEO_EXYNOS_FIMC_IS2)	+= fimc-is2/
 obj-$(CONFIG_VIDEO_EXYNOS_CAMREA_POSTPROCESS)	+= camera-pp/
-EXTRA_CLAGS += -Idrivers/media/video
+EXTRA_CFLAGS += -Idrivers/media/video
