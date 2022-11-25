@@ -18,15 +18,15 @@
 
 # Directory Contol
 CR_DIR=$(pwd)
-CR_TC=/home/miko/Documents/playground/linaro_-_4.9/bin/aarch64-linux-gnu-
+CR_TC=/home/miko/Documents/playground/linaro_-_7.5/bin/aarch64-linux-gnu-
 CR_DTS=arch/arm64/boot/dts
 CR_DTB=$CR_DIR/boot.img-dtb
 # Kernel Variables
-CR_VERSION=V1.1.3
+CR_VERSION=V4.5.1
 CR_NAME=Quantum_Quackery
 CR_JOBS=8
-CR_ANDROID=p
-CR_PLATFORM=9
+CR_ANDROID=q
+CR_PLATFORM=10
 CR_ARCH=arm64
 CR_DATE=$(date +%Y%m%d)
 # Init build
