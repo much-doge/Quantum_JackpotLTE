@@ -91,37 +91,19 @@ static void show_type(struct seq_file *m, struct super_block *sb)
 	}
 }
 
-static inline int skip_magisk_entry(const char *devname)
-{
-#ifdef CONFIG_PROC_MAGISK_HIDE_MOUNT
-	if (devname && strstr(devname, "magisk")) {
-		char name[TASK_COMM_LEN];
-		get_task_comm(name, current);
-		if (strstr(name, "Binder") ||
-		    strstr(name, "JavaBridge")) {
-			return SEQ_SKIP;
-		}
-	}
-#endif
-	return 0;
-}
-
 static int show_vfsmnt(struct seq_file *m, struct vfsmount *mnt)
 {
 	struct proc_mounts *p = m->private;
 	struct mount *r = real_mount(mnt);
+	int err = 0;
 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
 	struct super_block *sb = mnt_path.dentry->d_sb;
-	int err;
 
 	if (sb->s_op->show_devname) {
 		err = sb->s_op->show_devname(m, mnt_path.dentry);
 		if (err)
 			goto out;
 	} else {
-		err = skip_magisk_entry(r->mnt_devname);
-		if (err)
-			goto out;
 		mangle(m, r->mnt_devname ? r->mnt_devname : "none");
 	}
 	seq_putc(m, ' ');
@@ -151,17 +133,16 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
 	struct mount *r = real_mount(mnt);
 	struct super_block *sb = mnt->mnt_sb;
 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
-	int err;
+	int err = 0;
 
 	seq_printf(m, "%i %i %u:%u ", r->mnt_id, r->mnt_parent->mnt_id,
 		   MAJOR(sb->s_dev), MINOR(sb->s_dev));
-	if (sb->s_op->show_path) {
+	if (sb->s_op->show_path)
 		err = sb->s_op->show_path(m, mnt->mnt_root);
-		if (err)
-			goto out;
-	} else {
+	else
 		seq_dentry(m, mnt->mnt_root, " \t\n\\");
-	}
+	if (err)
+		goto out;
 	seq_putc(m, ' ');
 
 	/* mountpoints outside of chroot jail will give SEQ_SKIP on this */
@@ -189,16 +170,12 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
 	seq_puts(m, " - ");
 	show_type(m, sb);
 	seq_putc(m, ' ');
-	if (sb->s_op->show_devname) {
+	if (sb->s_op->show_devname)
 		err = sb->s_op->show_devname(m, mnt->mnt_root);
-		if (err)
-			goto out;
-	} else {
-		err = skip_magisk_entry(r->mnt_devname);
-		if (err)
-			goto out;
+	else
 		mangle(m, r->mnt_devname ? r->mnt_devname : "none");
-	}
+	if (err)
+		goto out;
 	seq_puts(m, sb->s_flags & MS_RDONLY ? " ro" : " rw");
 	err = show_sb_opts(m, sb);
 	if (err)
@@ -218,7 +195,7 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 	struct mount *r = real_mount(mnt);
 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
 	struct super_block *sb = mnt_path.dentry->d_sb;
-	int err;
+	int err = 0;
 
 	/* device */
 	if (sb->s_op->show_devname) {
@@ -228,10 +205,6 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 			goto out;
 	} else {
 		if (r->mnt_devname) {
-			err = skip_magisk_entry(r->mnt_devname);
-			if (err)
-				goto out;
-
 			seq_puts(m, "device ");
 			mangle(m, r->mnt_devname);
 		} else
@@ -253,7 +226,8 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 	/* optional statistics */
 	if (sb->s_op->show_stats) {
 		seq_putc(m, ' ');
-		err = sb->s_op->show_stats(m, mnt_path.dentry);
+		if (!err)
+			err = sb->s_op->show_stats(m, mnt_path.dentry);
 	}
 
 	seq_putc(m, '\n');
