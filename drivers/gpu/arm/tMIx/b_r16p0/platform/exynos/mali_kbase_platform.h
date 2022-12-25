@@ -46,7 +46,7 @@ do { \
 #define CPU_MAX INT_MAX
 #define DVFS_TABLE_COL_NUM 8
 #define DVFS_TABLE_ROW_MAX 20
-#define OF_DATA_NUM_MAX 95
+#define OF_DATA_NUM_MAX 100
 
 typedef enum {
 	DVFS_DEBUG_START = 0,
