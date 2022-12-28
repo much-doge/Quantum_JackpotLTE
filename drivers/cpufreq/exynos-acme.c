@@ -788,7 +788,7 @@ static void print_domain_info(struct exynos_cpufreq_domain *domain)
 			domain->id, buf);
 
 	pr_info("CPUFREQ of domain%d boot freq = %d kHz, resume freq = %d kHz\n",
-			domain->id, domain->boot_freq, domain->resume_freq);	
+			domain->id, domain->boot_freq, domain->resume_freq);
 
 	pr_info("CPUFREQ of domain%d max freq : %d kHz, min freq : %d kHz\n",
 			domain->id,
@@ -800,7 +800,6 @@ static void print_domain_info(struct exynos_cpufreq_domain *domain)
 
 	pr_info("CPUFREQ of domain%d table size = %d\n",
 			domain->id, domain->table_size);
-
 
 	for (i = 0; i < domain->table_size; i ++) {
 		if (domain->freq_table[i].frequency == CPUFREQ_ENTRY_INVALID)
@@ -855,8 +854,6 @@ static __init int init_table(struct exynos_cpufreq_domain *domain)
 		else {
 			domain->freq_table[index].frequency = table[index];
 			/* Add OPP table to first cpu of domain */
-			//if(table[index]==1794)
-			//	volt_table[index]=1043750;
 			dev_pm_opp_add(get_cpu_device(cpumask_first(&domain->cpus)),
 					table[index] * 1000, volt_table[index]);
 		}
@@ -870,7 +867,6 @@ static __init int init_table(struct exynos_cpufreq_domain *domain)
 			ufc->info.freq_table[index].master_freq =
 					domain->freq_table[index].frequency;
 	}
-
 	domain->freq_table[index].driver_data = index;
 	domain->freq_table[index].frequency = CPUFREQ_TABLE_END;
 
@@ -972,7 +968,8 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 		for (c_index = 0; c_index < ect_domain->num_of_level; c_index++) {
 			/* find row same as frequency */
 			if (freq == ect_domain->level[c_index].main_frequencies)  {
-				dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies;//main is cpu freq, cons and sub is int
+				dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies; 
+			//main is cpu freq, cons and sub is int
 			//for minlock
 			if (domain->id==0)
 			{
@@ -1004,7 +1001,7 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 				break;
 			}
 		}
-//pr_info("constraint_table_ect: freq : %u kHz - dm->c.freq_table[index].constraint_freq : %u kHz - topser99\n",freq,dm->c.freq_table[index].constraint_freq);
+
 		/*
 		 * Due to higher levels of constraint_freq should not be NULL,
 		 * they should be filled with highest value of sub_frequencies of ect
@@ -1012,7 +1009,7 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 		 */
 		if (!valid_row)
 			dm->c.freq_table[index].constraint_freq
-				= ect_domain->level[0].sub_frequencies;//ect_domain->level[0].sub_frequencies is 533000
+				= ect_domain->level[0].sub_frequencies;
 	}
 
 	return 0;
@@ -1055,7 +1052,6 @@ static int init_constraint_table_dt(struct exynos_cpufreq_domain *domain,
 		if(freq==312000||freq==208000)
 			dm->c.freq_table[index].constraint_freq=420000;
 		for (c_index = 0; c_index < size / 2; c_index++) {
-					
 			/* find row same or nearby frequency */
 			if (freq <= table[c_index].master_freq)
 				dm->c.freq_table[index].constraint_freq
@@ -1167,13 +1163,13 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	/*
 	 * If max-freq property exists in device tree, max frequency is
-	 * selected to smaller one between the value defined in device
-	 * tree and CAL. In case of min-freq, min frequency is selected
+	 * selected to the value defined in device tree (ignoring ECT limit)
+	 * In case of min-freq, min frequency is selected
 	 * to bigger one.
 	 */
 #ifndef CONFIG_EXYNOS_HOTPLUG_GOVERNOR
 	if (!of_property_read_u32(dn, "max-freq", &val))
-		domain->max_freq = min(domain->max_freq, val);
+		domain->max_freq = val;
 #endif
 	if (!of_property_read_u32(dn, "min-freq", &val))
 		domain->min_freq = max(domain->min_freq, val);
@@ -1182,7 +1178,7 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 	domain->resume_freq = cal_dfs_get_resume_freq(domain->cal_id);
 	if (domain->id == 0) {
 		domain->boot_freq=domain->max_freq = 1794000; //2002 1898 1794 1690...449 343 208
-		domain->min_freq = 449000;//2002 1898 1794 1690...449 343 208
+		domain->min_freq = 449000; //2002 1898 1794 1690...449 343 208
 	} else if (domain->id == 1) {
 		domain->boot_freq=domain->max_freq = 2392000; //2496 2392 2288 2184....728 520 312 208
 		domain->min_freq = 520000; //2496 2392 2288 2184....728 520 312 208

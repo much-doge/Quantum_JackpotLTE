@@ -3,10 +3,6 @@
  * Copyright (C) 2020 Adithya R <gh0strider.2k18.reborn@gmail.com>.
  */
 
-/*
-Fix me
-*/
-
 #ifndef _BATTERY_SAVER_H_
 #define _BATTERY_SAVER_H_
 

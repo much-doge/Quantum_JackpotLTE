@@ -39,6 +39,10 @@ static const int cfq_hist_divisor = 4;
 /* IOPP-cfq_max_async_dispatch-v1.0.4.4 */
 static int cfq_max_async_dispatch = 4;
 
+/* Tunes from Pixel 4 */
+extern struct blkcg *blkcg_bg;
+/* Tunes from Pixel 4 */
+
 /*
  * offset from end of service tree
  */
@@ -651,6 +655,8 @@ static inline void cfqg_put(struct cfq_group *cfqg)
 #define cfq_log_cfqq(cfqd, cfqq, fmt, args...)	do {			\
 	char __pbuf[128];						\
 									\
+	if (likely(!blk_trace_note_message_enabled((bfqd)->queue)))	\
+		break;							\
 	blkg_path(cfqg_to_blkg((cfqq)->cfqg), __pbuf, sizeof(__pbuf));	\
 	blk_add_trace_msg((cfqd)->queue, "cfq%d%c%c %s " fmt, (cfqq)->pid, \
 			cfq_cfqq_sync((cfqq)) ? 'S' : 'A',		\
@@ -661,6 +667,8 @@ static inline void cfqg_put(struct cfq_group *cfqg)
 #define cfq_log_cfqg(cfqd, cfqg, fmt, args...)	do {			\
 	char __pbuf[128];						\
 									\
+	if (likely(!blk_trace_note_message_enabled((bfqd)->queue)))     \
+                break;                                                  \
 	blkg_path(cfqg_to_blkg(cfqg), __pbuf, sizeof(__pbuf));		\
 	blk_add_trace_msg((cfqd)->queue, "%s " fmt, __pbuf, ##args);	\
 } while (0)
@@ -1636,6 +1644,16 @@ static void cfq_pd_init(struct blkg_policy_data *pd)
 {
 	struct cfq_group *cfqg = pd_to_cfqg(pd);
 	struct cfq_group_data *cgd = blkcg_to_cfqgd(pd->blkg->blkcg);
+
+/* Tunes from Pixel 4 */
+	if (pd->blkg->blkcg == &blkcg_root) {
+		cgd->weight = 1000;
+		cgd->group_idle = 2000 * NSEC_PER_USEC;
+	} else if (pd->blkg->blkcg == blkcg_bg) {
+		cgd->weight = 200;
+		cgd->group_idle = 0;
+	}
+/* Tunes from Pixel 4 */
 
 	cfqg->weight = cgd->weight;
 	cfqg->leaf_weight = cgd->leaf_weight;
