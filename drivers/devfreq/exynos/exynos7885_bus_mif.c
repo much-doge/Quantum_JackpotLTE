@@ -45,32 +45,34 @@ static unsigned int ect_find_constraint_freq(struct ect_minlock_domain *ect_doma
 					unsigned int freq)
 {
 	unsigned int i;
+	int bm_index;
 
-	for (i =0; i < ect_domain->num_of_level; i++)
-{
-		if(ect_domain->level[i].main_frequencies==2093000)
-			ect_domain->level[i].sub_frequencies=533000;
-		if(ect_domain->level[i].main_frequencies==2002000)
-			ect_domain->level[i].sub_frequencies=533000;
-		if(ect_domain->level[i].main_frequencies==1794000)
-			ect_domain->level[i].sub_frequencies=533000;
-		if(ect_domain->level[i].main_frequencies==1539000)
-			ect_domain->level[i].sub_frequencies=333000;
-		if(ect_domain->level[i].main_frequencies==1352000)
-			ect_domain->level[i].sub_frequencies=267000;
-		if(ect_domain->level[i].main_frequencies==1014000)
-			ect_domain->level[i].sub_frequencies=133000;
-		if(ect_domain->level[i].main_frequencies==845000)
-			ect_domain->level[i].sub_frequencies=107000;
-		if(ect_domain->level[i].main_frequencies==676000)
-			ect_domain->level[i].sub_frequencies=107000;
-		if(ect_domain->level[i].main_frequencies==546000)
-			ect_domain->level[i].sub_frequencies=107000;
-		if(ect_domain->level[i].main_frequencies==420000)
-			ect_domain->level[i].sub_frequencies=107000;
-		//exynos_dm/constraint_table_dm_mif
-		if (ect_domain->level[i].main_frequencies == freq) break;
-}
+	for (i = 0; i < ect_domain->num_of_level; i++) {
+		unsigned int freq = ect_domain->level[i].main_frequencies;
+
+		// MIF frequencies
+		int arr[5] = {2093000,2002000,1794000,1352000,1014000};
+
+		for (bm_index = 0; bm_index <= 4; bm_index++) {
+
+			if(freq == arr[0] || freq == arr[1])
+				ect_domain->level[i].sub_frequencies=533000;
+			if(freq == arr[2])
+				ect_domain->level[i].sub_frequencies=333000;
+			if(freq == arr[3])
+				ect_domain->level[i].sub_frequencies=267000;
+			if(freq == arr[4])
+				ect_domain->level[i].sub_frequencies=133000;
+		}
+
+		if (ect_domain->level[i].main_frequencies == freq)
+			break;
+
+		pr_info("  main_lv : %7d kHz, sub_lv : %7d kHz, exynos7885_bus_mif\n",
+					ect_domain->level[i].main_frequencies,
+					ect_domain->level[i].sub_frequencies);
+	}
+
 	return ect_domain->level[i].sub_frequencies;
 }
 #endif
@@ -96,7 +98,7 @@ static int exynos7885_mif_constraint_parse(struct exynos_devfreq_data *data,
 	dvfs_block = ect_get_block(BLOCK_DVFS);
 	if (dvfs_block == NULL)
 		return -ENODEV;
-	//max_freq=2093000;
+
 	dvfs_domain = ect_dvfs_get_domain(dvfs_block, "dvfs_mif");
 	if (dvfs_domain == NULL)
 		return -ENODEV;
@@ -147,9 +149,9 @@ static int exynos7885_mif_constraint_parse(struct exynos_devfreq_data *data,
 	config.indirection = false;
 
 	for (i = 0; i < dvfs_domain->num_of_level; i++) {
-		//if (data->opp_list[i].freq > max_freq ||
-			//	data->opp_list[i].freq < min_freq)
-			//continue;
+		if (data->opp_list[i].freq > max_freq ||
+				data->opp_list[i].freq < min_freq)
+			continue;
 
 		config.cmd[0] = use_level;
 		config.cmd[1] = data->opp_list[i].freq;
@@ -157,13 +159,9 @@ static int exynos7885_mif_constraint_parse(struct exynos_devfreq_data *data,
 		config.cmd[3] = 0;
 #ifdef CONFIG_EXYNOS_DVFS_MANAGER
 		if (const_flag) {
-			//if(const_table[use_level].master_freq==1794000)
-			//	const_table[use_level].constraint_freq==533000;
 			const_table[use_level].master_freq = data->opp_list[i].freq;
 			const_table[use_level].constraint_freq
 				= ect_find_constraint_freq(ect_domain, data->opp_list[i].freq);
-			//if(const_table[use_level].master_freq==1794000)
-			//	const_table[use_level].constraint_freq==533000;
 			config.cmd[3] = const_table[use_level].constraint_freq;
 		}
 #endif
@@ -273,9 +271,7 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 		return -EINVAL;
 	}
 
-	max_freq = (u32)cal_dfs_get_max_freq(data->dfs_id);
-	//max_freq = 1794000;
-	//data->max_freq=1794000;
+	max_freq = 2093000;
 	if (!max_freq) {
 		dev_err(data->dev, "failed get max frequency\n");
 		return -EINVAL;
@@ -295,7 +291,7 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 			return PTR_ERR(target_opp);
 		}
 
-		data->max_freq = dev_pm_opp_get_freq(target_opp);
+		data->max_freq = 2093000;
 		rcu_read_unlock();
 	}
 
@@ -336,14 +332,10 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 	for (i = 0; i < data->max_state; i++) {
 		if (data->opp_list[i].freq > data->max_freq ||
 			data->opp_list[i].freq < data->min_freq)
-			data->max_freq=data->opp_list[2].freq ; // for max freq of 1794
-			//data->max_freq=data->opp_list[1].freq ; // for max freq of 2002
-			// data->max_freq=data->opp_list[0].freq ; // for max freq of 2093
-			//dev_pm_opp_disable(data->dev, (unsigned long)data->opp_list[i].freq); //disable for full available_frequencie
+			dev_pm_opp_disable(data->dev, (unsigned long)data->opp_list[i].freq);
 	}
 
 	data->devfreq_profile.initial_freq = cal_dfs_get_boot_freq(data->dfs_id);
-	//data->devfreq_profile.initial_freq=1794000;
 	data->devfreq_profile.suspend_freq = cal_dfs_get_resume_freq(data->dfs_id);
 
 	ret = exynos7885_mif_constraint_parse(data, min_freq, max_freq);
@@ -352,7 +344,7 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 		return -EINVAL;
 	}
 
-	ret = exynos_acpm_set_init_freq(data->dfs_id, data->devfreq_profile.initial_freq); 
+	ret = exynos_acpm_set_init_freq(data->dfs_id, data->devfreq_profile.initial_freq);
 	if (ret) {
 		dev_err(data->dev, "failed to set init freq\n");
 		return -EINVAL;
