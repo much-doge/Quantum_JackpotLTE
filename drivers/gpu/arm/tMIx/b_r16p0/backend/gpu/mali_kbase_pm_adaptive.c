@@ -110,6 +110,7 @@ const struct kbase_pm_policy kbase_pm_adaptive_policy_ops = {
 	adaptive_get_core_active,	/* get_core_active */
 	adaptive_handle_event,		/* handle_event */
 	0u,							/* flags */
+	NULL,				/* handle_event */
 	KBASE_PM_POLICY_ID_ADAPTIVE,	/* id */
 };
 
