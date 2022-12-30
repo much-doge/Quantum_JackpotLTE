@@ -1,52 +1,36 @@
-# NXP audio amplifier - TFA9872
+# NXP audio amplifier - TFA9896
+# Copyright (C) 2014-2020 NXP Semiconductors, All Rights Reserved.
+# Copyright 2020 GOODIX 
+#
+#This program is free software; you can redistribute it and/or modify
+#it under the terms of the GNU General Public License version 2 as
+#published by the Free Software Foundation.
 
-TFA_VERSION              =tfa9872
-TFADSP_32BITS            =1
-#TFADSP_DSP_MSG_APR_PACKET_STRATEGY=0
-TFADSP_DSP_BUFFER_POOL   =1
-TFA_BLACKBOX_LOGGING     =1
-#TFA_WRITE_CAL_TO_FILE=0
+# make sure that the environment variables ARCH and CROSS_COMPILE
+# are set for your architecture and cross compiler.
+# And that KDIR points to the kernel to build against.
+#
+# e.g.:
+# export ARCH=arm
+# export CROSS_COMPILE=arm-linux-gnueabihf-
+# export KDIR=../linux
+
+TFA_VERSION              =tfa9896
 TFA_SRC_DIR              =sound/soc/codecs/$(TFA_VERSION)
-TFA98XX_FLAGS           := -DUSE_TFA9872
 
-# cc flags
-#ccflags-y               := -DDEBUG
-#ccflags-y               += -I$(TFA_SRC_DIR)/inc
-ccflags-y               := -I$(TFA_SRC_DIR)/inc
-ccflags-y               += -Werror
-ifdef TFADSP_32BITS
-ccflags-y               += -DTFADSP_32BITS
-endif
-ifdef TFADSP_DSP_MSG_APR_PACKET_STRATEGY
-ccflags-y               += -DTFADSP_DSP_MSG_APR_PACKET_STRATEGY
-endif
-ifdef TFADSP_DSP_BUFFER_POOL
-ccflags-y               += -DTFADSP_DSP_BUFFER_POOL
-endif
-ifdef TFA_BLACKBOX_LOGGING
-ccflags-y               += -DTFA_BLACKBOX_LOGGING
-endif
-ifdef TFA_WRITE_CAL_TO_FILE
-ccflags-y               += -DTFA_WRITE_CAL_TO_FILE
-endif
+# In case of out of tree build, build as a module
+# (when build inside kernel we will not enter this directory and this will have no effect)
+#ifeq ($(CONFIG_SND_SOC_TFA98XX),)
+#CONFIG_SND_SOC_TFA98XX := m
+#endif
+
+EXTRA_CFLAGS += -I$(TFA_SRC_DIR)/inc
 
 # objs
-snd-soc-tfa98xx-objs    := tfa98xx.o
-snd-soc-tfa98xx-objs    += tfa_container.o
-snd-soc-tfa98xx-objs    += tfa_dsp.o
-snd-soc-tfa98xx-objs    += tfa_init.o
-snd-soc-tfa98xx-objs    += tfa_debug.o
-snd-soc-tfa98xx-objs    += tfa_cal.o
-snd-soc-tfa98xx-objs    += tfa_log.o
-
-# CFLAGS
-CFLAGS_tfa98xx.o       += $(TFA98XX_FLAGS)
-CFLAGS_tfa_container.o += $(TFA98XX_FLAGS)
-CFLAGS_tfa_dsp.o       += $(TFA98XX_FLAGS)
-CFLAGS_tfa_init.o      += $(TFA98XX_FLAGS)
-CFLAGS_tfa_debug.o     += $(TFA98XX_FLAGS)
-CFLAGS_tfa_cal.o       += $(TFA98XX_FLAGS)
-CFLAGS_tfa_log.o       += $(TFA98XX_FLAGS)
+snd-soc-tfa98xx-objs += tfa98xx.o
+snd-soc-tfa98xx-objs += tfa_container.o
+snd-soc-tfa98xx-objs += tfa_dsp.o
+snd-soc-tfa98xx-objs += tfa_init.o
 
 # built-in driver
 obj-y	+= snd-soc-tfa98xx.o
