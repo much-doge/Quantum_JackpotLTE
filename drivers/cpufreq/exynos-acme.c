@@ -967,8 +967,9 @@ static int init_constraint_table_ect(struct exynos_cpufreq_domain *domain,
 
 		for (c_index = 0; c_index < ect_domain->num_of_level; c_index++) {
 			/* find row same as frequency */
-			if (freq == ect_domain->level[c_index].main_frequencies)  {
-				dm->c.freq_table[index].constraint_freq= ect_domain->level[c_index].sub_frequencies; 
+			if (freq == ect_domain->level[c_index].main_frequencies) {
+				dm->c.freq_table[index].constraint_freq
+					= ect_domain->level[c_index].sub_frequencies;
 			//main is cpu freq, cons and sub is int
 			//for minlock
 			if (domain->id==0)
@@ -1164,8 +1165,8 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 	/*
 	 * If max-freq property exists in device tree, max frequency is
 	 * selected to the value defined in device tree (ignoring ECT limit)
-	 * In case of min-freq, min frequency is selected
-	 * to bigger one.
+	 * If min-freq property exists in device tree, min frequency is
+	 * selected to the value defined in device tree
 	 */
 #ifndef CONFIG_EXYNOS_HOTPLUG_GOVERNOR
 	if (!of_property_read_u32(dn, "max-freq", &val))
@@ -1176,12 +1177,17 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	domain->boot_freq = cal_dfs_get_boot_freq(domain->cal_id);
 	domain->resume_freq = cal_dfs_get_resume_freq(domain->cal_id);
-	if (domain->id == 0) {
-		domain->boot_freq=domain->max_freq = 1794000; //2002 1898 1794 1690...449 343 208
-		domain->min_freq = 449000; //2002 1898 1794 1690...449 343 208
-	} else if (domain->id == 1) {
-		domain->boot_freq=domain->max_freq = 2392000; //2496 2392 2288 2184....728 520 312 208
-		domain->min_freq = 520000; //2496 2392 2288 2184....728 520 312 208
+	if (domain->id == 0)
+	{
+		domain->boot_freq = domain->max_freq = 1794000;
+		domain->min_freq = 449000;
+		domain->resume_freq = 1794000;
+	}
+	else if (domain->id == 1)
+	{
+		domain->boot_freq = domain->max_freq = 2392000;
+		domain->min_freq = 520000;
+		domain->resume_freq = 2392000;
 	}
 
 	/* Initialize freq boost */
@@ -1379,7 +1385,6 @@ free:
 	return NULL;
 }
 
-
 static int __init exynos_cpufreq_init(void)
 {
 	struct device_node *dn = NULL;
@@ -1441,7 +1446,7 @@ static int __init exynos_cpufreq_init(void)
 		update_freq(domain, domain->old);
 		cpufreq_update_policy(cpumask_first(&domain->cpus));
 	}
-	
+
 	pr_info("Initialized Exynos cpufreq driver\n");
 
 	return ret;
