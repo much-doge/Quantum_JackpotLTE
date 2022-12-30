@@ -871,9 +871,9 @@ static int selinux_set_mnt_opts(struct super_block *sb,
 	if (!strcmp(sb->s_type->name, "debugfs") ||
 	    !strcmp(sb->s_type->name, "tracefs") ||
 	    !strcmp(sb->s_type->name, "sysfs") ||
-		// [ SEC_SELINUX_PORTING_COMMON
-		!strcmp(sb->s_type->name, "configfs") ||
-		// ] SEC_SELINUX_PORTING_COMMON
+	    // [ SEC_SELINUX_PORTING_COMMON
+	    !strcmp(sb->s_type->name, "configfs") ||
+	    // ] SEC_SELINUX_PORTING_COMMON
 	    !strcmp(sb->s_type->name, "pstore"))
 		sbsec->flags |= SE_SBGENFS;
 
@@ -1378,6 +1378,8 @@ static inline u16 socket_type_to_security_class(int family, int type, int protoc
 		return SECCLASS_KEY_SOCKET;
 	case PF_APPLETALK:
 		return SECCLASS_APPLETALK_SOCKET;
+	case PF_CAN:
+		return SECCLASS_CAN_SOCKET;
 	}
 
 	return SECCLASS_SOCKET;
