@@ -61,7 +61,6 @@ const struct kbase_pm_policy kbase_pm_coarse_demand_policy_ops = {
 	coarse_demand_shaders_needed,		/* shaders_needed */
 	coarse_demand_get_core_active,		/* get_core_active */
 	0u,					/* flags */
-	NULL,				/* handle_event */
 	KBASE_PM_POLICY_ID_COARSE_DEMAND,	/* id */
 };
 
