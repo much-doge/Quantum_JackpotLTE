@@ -212,6 +212,7 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 	fvmap_header = fvmap_base;
 	fv_table = fvmap_base + fvmap_header[idx].o_ratevolt;
 	num_of_lv = fvmap_header[idx].num_of_lv;
+
 	for (i = 0; i < num_of_lv; i++)
 	{	if(num_of_lv==18){
 			//	for(topser =0 ;topser < num_of_lv; topser++){
