@@ -31,7 +31,7 @@
 #include "sma1301.h"
 
 #ifdef CONFIG_EUREKA_SOUND_CONTROL
-#include "eureka_sound_control.h"
+#include "moro_sound.h"
 #endif
 
 #define CHECK_PERIOD_TIME 1 /* sec per HZ */

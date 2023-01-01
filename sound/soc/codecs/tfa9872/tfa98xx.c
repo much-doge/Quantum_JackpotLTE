@@ -29,6 +29,10 @@
 #include <linux/input.h>
 #include "config.h"
 
+#ifdef CONFIG_EUREKA_SOUND_CONTROL
+#include "moro_sound.h"
+#endif
+
 #define I2C_RETRIES 50
 #define I2C_RETRY_DELAY 5 /* ms */
 /* TODO: remove genregs usage? */
@@ -4074,6 +4078,10 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 			ret);
 		goto err;
 	}
+
+#ifdef CONFIG_EUREKA_SOUND_CONTROL
+	eureka_sound_control_hook_probe(tfa98xx->regmap);
+#endif
 
 	i2c_set_clientdata(i2c, tfa98xx);
 	mutex_init(&tfa98xx->dsp_lock);

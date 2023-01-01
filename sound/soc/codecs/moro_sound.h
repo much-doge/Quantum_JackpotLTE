@@ -1,9 +1,10 @@
 /*
- * eureka_sound_control.h  --  Sound Control for SMA1301 sound driver inspired from MoroSound driver
+ * moro_sound.h  --  Sound Control for SMA1301 sound driver inspired from MoroSound driver
  *
- * Author: @Chatur27 - https://github.com/chatur27
- *
+ * Author	: @morogoku https://github.com/morogoku
+ * Author	: @Chatur27 - https://github.com/chatur27 
  */
+
 
 #include <linux/module.h>
 #include <linux/kobject.h>
@@ -20,12 +21,11 @@
 void eureka_sound_control_hook_probe(struct regmap *pmap);
 int _regmap_write_nohook(struct regmap *map, unsigned int reg, unsigned int val);
 
-/*
- * Default Vars
- */
+/* Definitions */
 
-#define EUREKA_SOUND_ON			0
-#define EUREKA_SOUND_VERSION		"1.0"
+/* Moro sound general */
+#define MORO_SOUND_DEFAULT 		0
+#define MORO_SOUND_VERSION 		"2.1.1"
 
 /* Headphone */
 #define HEADPHONE_DEFAULT_BALANCE	94
@@ -39,3 +39,4 @@ int _regmap_write_nohook(struct regmap *map, unsigned int reg, unsigned int val)
 #define MONO_MIX_DEFAULT		0
 #define MONO_MIX_MIN_LIMIT		0
 #define MONO_MIX_MAX_LIMIT		5
+

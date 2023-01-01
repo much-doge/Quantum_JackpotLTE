@@ -38,7 +38,7 @@
 #include "cod3035x.h"
 
 #ifdef CONFIG_EUREKA_SOUND_CONTROL
-#include "eureka_sound_control.h"
+#include "moro_sound.h"
 #endif
 
 #define COD3035X_SAMPLE_RATE_48KHZ	48000
