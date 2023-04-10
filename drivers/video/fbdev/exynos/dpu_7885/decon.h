@@ -51,7 +51,7 @@ extern struct decon_bts_ops decon_bts_control;
 #define DECON_ENTER_LPD_CNT	3
 #define MIN_BLK_MODE_WIDTH	144
 #define MIN_BLK_MODE_HEIGHT	16
-#define VSYNC_TIMEOUT_MSEC	200
+#define VSYNC_TIMEOUT_MSEC	1000 /* 200ms was the original value, increased to 1000ms to see if it fix my vsync timeout problem */
 #define DEFAULT_BPP		32
 
 #define MAX_DECON_WIN		4
@@ -74,7 +74,7 @@ extern struct decon_bts_ops decon_bts_control;
 #define MHZ (1000*1000)
 #endif
 
-#define SHADOW_UPDATE_TIMEOUT	(300 * 1000) /* 300ms */
+#define SHADOW_UPDATE_TIMEOUT	(1000 * 1000) /* 300ms was the original value, increased to 1000ms to see if it fix my vsync timeout problem */
 #define IDLE_WAIT_TIMEOUT	(50 * 1000) /* 50ms */
 #define CEIL(x)			((x-(u32)(x) > 0 ? (u32)(x+1) : (u32)(x)))
 #define DSC_INIT_XMIT_DELAY	0x200
