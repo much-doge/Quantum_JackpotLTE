@@ -1,12 +1,9 @@
 /*
- * moro_sound.c --  Sound Control for SMA1301 & COD3035X sound drivers inspired from MoroSound driver
+ * eureka_sound_control.c  --  Sound Control for SMA1301 & COD3035X sound drivers inspired from MoroSound driver
  *
- * Author	: @morogoku https://github.com/morogoku
- * Edited by	: @noxxxious https://github.com/noxxxious
- * 		: @Chatur27 - https://github.com/chatur27
+ * Author: @Chatur27 - https://github.com/chatur27
  *
  * Date: 18 December 2021 - v1.0
- *
  *
  * Based on MoroSound 2.1.1 for Galaxy S8 and Boeffla Sound 1.6 for Galaxy S3
  *
@@ -18,9 +15,7 @@
  *
  */
 
-
-#include "moro_sound.h"
-
+#include "eureka_sound_control.h"
 
 /* Variables */
 static struct regmap *map;
@@ -28,7 +23,7 @@ static int hp_balance_l, hp_balance_r, hp_lr_gain;
 static int mono_mix_mode;
 static int hp_mute_reg, hp_mute_off;
 
-static int moro_sound = 0;
+static int eureka_sound_control_on = 0;
 
 static void init_audio_hub(void);
 static void reset_audio_hub(void);
@@ -100,15 +95,15 @@ static void headphone_analog_mute(int data)
 void eureka_sound_control_hook_probe(struct regmap *pmap)
 {
 	map = pmap;
-	moro_sound = MORO_SOUND_DEFAULT;
+	eureka_sound_control_on = EUREKA_SOUND_ON;
 
-	if (moro_sound)
+	if (eureka_sound_control_on)
 		init_audio_hub();
 }
 
 unsigned int eureka_sound_control_write_hook(unsigned int reg, unsigned int val)
 {
-	if (!moro_sound)
+	if (!eureka_sound_control_on)
 		return val;
 
 	switch (reg) {
@@ -148,7 +143,6 @@ unsigned int eureka_sound_control_write_hook(unsigned int reg, unsigned int val)
 }
 
 /* Initialization functions */
-
 static void init_audio_hub(void)
 {
 	hp_balance_l = HEADPHONE_DEFAULT_BALANCE;
@@ -178,13 +172,12 @@ static void update_audio_hub(void)
 }
 
 /* sysfs interface functions */
-static ssize_t moro_sound_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t eureka_sound_control_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", moro_sound);
+	return sprintf(buf, "%d\n", eureka_sound_control_on);
 }
 
-
-static ssize_t moro_sound_store(struct device *dev, struct device_attribute *attr,
+static ssize_t eureka_sound_control_store(struct device *dev, struct device_attribute *attr,
 					const char *buf, size_t count)
 {
 	int val;
@@ -193,8 +186,8 @@ static ssize_t moro_sound_store(struct device *dev, struct device_attribute *att
 		return -EINVAL;
 
 	if (((val == 0) || (val == 1))) {
-		if (moro_sound != val) {
-			moro_sound = val;
+		if (eureka_sound_control_on != val) {
+			eureka_sound_control_on = val;
 
 			if (val == 1)
 				update_audio_hub();
@@ -220,7 +213,7 @@ static ssize_t headphone_gain_store(struct device *dev, struct device_attribute 
 	int val_r;
 	int val_lr;
 
-	if (!moro_sound)
+	if (!eureka_sound_control_on)
 		return count;
 
 	if (sscanf(buf, "%d %d %d", &val_l, &val_r, &val_lr) < 3)
@@ -295,7 +288,7 @@ static ssize_t headphone_mute_store(struct device *dev, struct device_attribute 
 	int data1;
 	int data2;
 
-	if (!moro_sound)
+	if (!eureka_sound_control_on)
 		return count;
 
 	if (sscanf(buf, "%d %d", &data1, &data2) < 2)
@@ -321,7 +314,7 @@ static ssize_t headphone_mute_store(struct device *dev, struct device_attribute 
 
 static ssize_t version_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%s\n", MORO_SOUND_VERSION);
+	return sprintf(buf, "%s\n", EUREKA_SOUND_VERSION);
 }
 
 static ssize_t reg_dump_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -361,15 +354,15 @@ hpl, hpr, hplr, mono_mix, hp_unmuted);
 }
 
 /* Sysfs permissions */
-static DEVICE_ATTR(moro_sound, 0664, moro_sound_show, moro_sound_store);
+static DEVICE_ATTR(eureka_sound_control, 0664, eureka_sound_control_show, eureka_sound_control_store);
 static DEVICE_ATTR(headphone_gain, 0664, headphone_gain_show, headphone_gain_store);
 static DEVICE_ATTR(mono_mix_mode, 0664, mono_mix_mode_show, mono_mix_mode_store);
 static DEVICE_ATTR(headphone_mute, 0664, headphone_mute_show, headphone_mute_store);
 static DEVICE_ATTR(version, 0664, version_show, NULL);
 static DEVICE_ATTR(reg_dump, 0664, reg_dump_show, NULL);
 
-static struct attribute *moro_sound_attributes[] = {
-	&dev_attr_moro_sound.attr,
+static struct attribute *eureka_sound_control_attributes[] = {
+	&dev_attr_eureka_sound_control.attr,
 	&dev_attr_headphone_gain.attr,
 	&dev_attr_mono_mix_mode.attr,
 	&dev_attr_headphone_mute.attr,
@@ -378,21 +371,21 @@ static struct attribute *moro_sound_attributes[] = {
 	NULL
 };
 
-static struct attribute_group moro_sound_control_group = {
-	.attrs = moro_sound_attributes,
+static struct attribute_group eureka_sound_control_group = {
+	.attrs = eureka_sound_control_attributes,
 };
 
-static struct miscdevice moro_sound_control_device = {
+static struct miscdevice eureka_sound_control_device = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "moro_sound",
+	.name = "eureka_sound_control",
 };
 
-static int moro_sound_init(void)
+static int eureka_sound_control_init(void)
 {
-	misc_register(&moro_sound_control_device);
+	misc_register(&eureka_sound_control_device);
 
-	if (sysfs_create_group(&moro_sound_control_device.this_device->kobj,
-				&moro_sound_control_group) < 0) {
+	if (sysfs_create_group(&eureka_sound_control_device.this_device->kobj,
+				&eureka_sound_control_group) < 0) {
 		return 0;
 	}
 
@@ -401,13 +394,12 @@ static int moro_sound_init(void)
 	return 0;
 }
 
-static void moro_sound_exit(void)
+static void eureka_sound_control_exit(void)
 {
-	sysfs_remove_group(&moro_sound_control_device.this_device->kobj,
-                           &moro_sound_control_group);
+	sysfs_remove_group(&eureka_sound_control_device.this_device->kobj,
+                           &eureka_sound_control_group);
 }
 
 /* Driver init and exit functions */
-module_init(moro_sound_init);
-module_exit(moro_sound_exit);
-
+module_init(eureka_sound_control_init);
+module_exit(eureka_sound_control_exit);
