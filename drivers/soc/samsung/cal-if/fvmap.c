@@ -214,69 +214,52 @@ int fvmap_get_voltage_table(unsigned int id, unsigned int *table)
 	num_of_lv = fvmap_header[idx].num_of_lv;
 	for (i = 0; i < num_of_lv; i++)
 	{	if(num_of_lv==18){
-			//	for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-				/*Undervolt little cores*/
-				fv_table->table[0].volt=1300000; 	//freq=2002 1168750
-				fv_table->table[1].volt=1281250; 	//freq=1898 1131250
-				
-				fv_table->table[2].volt=1200000; 	//freq=1794 1043750
-				fv_table->table[3].volt=1187500; 	//freq=1690 1031250
-				fv_table->table[4].volt=1131250; 	//freq=1586 1031250
-				fv_table->table[5].volt=1056250; 	//freq=1482 987500
-				fv_table->table[6].volt=1031250; 	//freq=1352 931250
-				fv_table->table[7].volt=987500; 	//freq=1248 893750
-				fv_table->table[8].volt=931250; 	//freq=1144 856250
-				fv_table->table[9].volt=893750; 	//freq=1014 806250
-				fv_table->table[10].volt=856250; 	//freq=902  768750
-				fv_table->table[11].volt=806250; 	//freq=839  750000
-				fv_table->table[12].volt=768750; 	//freq=757  731250
-				fv_table->table[13].volt=750000; 	//freq=676  706250
-				fv_table->table[14].volt=731250; 	//freq=546  668750
-				fv_table->table[15].volt=718750;	//freq=449  637500
-				fv_table->table[16].volt=706250;	//freq=343  612500
-				fv_table->table[17].volt=700000; 	//freq=208  600000
+				/*Undervolt little cores*/			// FREQ		UNDERVOLT	STOCK
+				fv_table->table[0].volt=1168750; 	// freq=2002 1168750	1300000
+				fv_table->table[1].volt=1131250; 	// freq=1898 1131250	1281250
+				/*The above frequency are disabled/unattainable. The list below are used instead*/
+				fv_table->table[2].volt=1056250; 	// freq=1794 1043750	1200000
+				fv_table->table[3].volt=1043750; 	// freq=1690 1031250	1187500
+				fv_table->table[4].volt=1031250; 	// freq=1586 1031250	1131250
+				fv_table->table[5].volt=987500; 	// freq=1482 987500		1056250
+				fv_table->table[6].volt=931250; 	// freq=1352 931250		1031250
+				fv_table->table[7].volt=893750; 	// freq=1248 893750		987500
+				fv_table->table[8].volt=856250; 	// freq=1144 856250		931250
+				fv_table->table[9].volt=806250; 	// freq=1014 806250		893750
+				fv_table->table[10].volt=768750; 	// freq=902  768750		856250
+				fv_table->table[11].volt=750000; 	// freq=839  750000		806250
+				fv_table->table[12].volt=731250; 	// freq=757  731250		768750
+				fv_table->table[13].volt=706250; 	// freq=676  706250		750000
+				fv_table->table[14].volt=668750; 	// freq=546  668750		731250
+				fv_table->table[15].volt=650000;	// freq=449  637500		718750
+				/*The frequencies below are disabled in exynos-acme.c*/
+				fv_table->table[16].volt=612500;	// freq=343  612500		706250
+				fv_table->table[17].volt=600000; 	// freq=208  600000		700000
 		}
 		if(num_of_lv==17){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-				/*Undervolt the BIG cores*/
-				fv_table->table[0].volt=1300000;	// freq=2496 1256250
-				
-				fv_table->table[1].volt=1300000;	// freq=2392 1256250
-				fv_table->table[2].volt=1281250;	// freq=2288 1187500
-				fv_table->table[3].volt=1250000;	// freq=2184 1181250
-				fv_table->table[4].volt=1187500;	// freq=2080 1137500
-				fv_table->table[5].volt=1125000;	// freq=1976 1125000
-				fv_table->table[6].volt=1081250;	// freq=1872 1081250
-				fv_table->table[7].volt=1037500;	// freq=1768 1037500
-				fv_table->table[8].volt=1000000;	// freq=1664 1000000
-				fv_table->table[9].volt=962500;		// freq=1560 962500
-				fv_table->table[10].volt=887500;	// freq=1352 887500
-				fv_table->table[11].volt=818750;	// freq=1144 818750
-				fv_table->table[12].volt=768750;	// freq=936  762500
-				fv_table->table[13].volt=750000;	// freq=728  700000
-				fv_table->table[14].volt=731250;	// freq=520  643750
-				fv_table->table[15].volt=718750;	// freq=312  600000
-				fv_table->table[16].volt=706250;	// freq=208  600000
+				/*Undervolt the BIG cores*/			//FREQ		UNDERVOLT	STOCK
+				fv_table->table[0].volt=1250000;	//freq=2496 1256250		1300000
+				/*The above frequency are disabled/unattainable. The list below are used instead*/
+				fv_table->table[1].volt=1187500;	//freq=2392 1256250		1300000
+				fv_table->table[2].volt=1168750;	//freq=2288 1187500		1281250
+				fv_table->table[3].volt=1131250;	//freq=2184 1181250		1250000
+				fv_table->table[4].volt=1056250;	//freq=2080 1137500		1187500
+				fv_table->table[5].volt=1031250;	//freq=1976 1125000		1125000
+				fv_table->table[6].volt=987500;		//freq=1872 1081250		1081250
+				fv_table->table[7].volt=962500;		//freq=1768 1037500		1037500
+				fv_table->table[8].volt=887500;		//freq=1664 1000000		1000000
+				fv_table->table[9].volt=818750;		//freq=1560 962500		962500
+				fv_table->table[10].volt=768750;	//freq=1352 887500		887500
+				fv_table->table[11].volt=731250;	//freq=1144 818750		818750
+				fv_table->table[12].volt=706250;	//freq=936  762500		768750
+				fv_table->table[13].volt=700000;	//freq=728  700000		750000
+				fv_table->table[14].volt=650000;	//freq=520  643750		731250
+				/*The frequencies below are disabled in exynos-acme.c*/
+				fv_table->table[15].volt=612500;	// freq=312  600000		718750
+				fv_table->table[16].volt=600000;	// freq=208  600000		706250
 		}
-		// This is used to reveal MIF voltages, MIF level is 10
-		//if(num_of_lv==10){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-		//}
-		// Undervolt the GPU by 200000uV
 		if(num_of_lv==9){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
+				/*Undervolt the GPU by 200000uV*/
 				fv_table->table[0].volt=1000000;	// freq=1300	1200000
 				fv_table->table[1].volt=893750;		// freq=1200	1093750
 				fv_table->table[2].volt=818750;		// freq=1100	1018750
@@ -311,69 +294,52 @@ int fvmap_get_raw_voltage_table(unsigned int id)
 
 	for (i = 0; i < num_of_lv; i++)
 {if(num_of_lv==18){
-			//	for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-				/*Undervolt little cores*/
-				fv_table->table[0].volt=1300000; 	//freq=2002 1168750
-				fv_table->table[1].volt=1281250; 	//freq=1898 1131250
-				
-				fv_table->table[2].volt=1200000; 	//freq=1794 1043750
-				fv_table->table[3].volt=1187500; 	//freq=1690 1031250
-				fv_table->table[4].volt=1131250; 	//freq=1586 1031250
-				fv_table->table[5].volt=1056250; 	//freq=1482 987500
-				fv_table->table[6].volt=1031250; 	//freq=1352 931250
-				fv_table->table[7].volt=987500; 	//freq=1248 893750
-				fv_table->table[8].volt=931250; 	//freq=1144 856250
-				fv_table->table[9].volt=893750; 	//freq=1014 806250
-				fv_table->table[10].volt=856250; 	//freq=902  768750
-				fv_table->table[11].volt=806250; 	//freq=839  750000
-				fv_table->table[12].volt=768750; 	//freq=757  731250
-				fv_table->table[13].volt=750000; 	//freq=676  706250
-				fv_table->table[14].volt=731250; 	//freq=546  668750
-				fv_table->table[15].volt=718750;	//freq=449  637500
-				fv_table->table[16].volt=706250;	//freq=343  612500
-				fv_table->table[17].volt=700000; 	//freq=208  600000
+				/*Undervolt little cores*/			// FREQ		UNDERVOLT	STOCK
+				fv_table->table[0].volt=1168750; 	// freq=2002 1168750	1300000
+				fv_table->table[1].volt=1131250; 	// freq=1898 1131250	1281250
+				/*The above frequency are disabled/unattainable. The list below are used instead*/
+				fv_table->table[2].volt=1056250; 	// freq=1794 1043750	1200000
+				fv_table->table[3].volt=1043750; 	// freq=1690 1031250	1187500
+				fv_table->table[4].volt=1031250; 	// freq=1586 1031250	1131250
+				fv_table->table[5].volt=987500; 	// freq=1482 987500		1056250
+				fv_table->table[6].volt=931250; 	// freq=1352 931250		1031250
+				fv_table->table[7].volt=893750; 	// freq=1248 893750		987500
+				fv_table->table[8].volt=856250; 	// freq=1144 856250		931250
+				fv_table->table[9].volt=806250; 	// freq=1014 806250		893750
+				fv_table->table[10].volt=768750; 	// freq=902  768750		856250
+				fv_table->table[11].volt=750000; 	// freq=839  750000		806250
+				fv_table->table[12].volt=731250; 	// freq=757  731250		768750
+				fv_table->table[13].volt=706250; 	// freq=676  706250		750000
+				fv_table->table[14].volt=668750; 	// freq=546  668750		731250
+				fv_table->table[15].volt=650000;	// freq=449  637500		718750
+				/*The frequencies below are disabled in exynos-acme.c*/
+				fv_table->table[16].volt=612500;	// freq=343  612500		706250
+				fv_table->table[17].volt=600000; 	// freq=208  600000		700000
 		}
 		if(num_of_lv==17){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-				/*Undervolt the BIG cores*/
-				fv_table->table[0].volt=1300000;	// freq=2496 1256250
-				
-				fv_table->table[1].volt=1300000;	// freq=2392 1256250
-				fv_table->table[2].volt=1281250;	// freq=2288 1187500
-				fv_table->table[3].volt=1250000;	// freq=2184 1181250
-				fv_table->table[4].volt=1187500;	// freq=2080 1137500
-				fv_table->table[5].volt=1125000;	// freq=1976 1125000
-				fv_table->table[6].volt=1081250;	// freq=1872 1081250
-				fv_table->table[7].volt=1037500;	// freq=1768 1037500
-				fv_table->table[8].volt=1000000;	// freq=1664 1000000
-				fv_table->table[9].volt=962500;		// freq=1560 962500
-				fv_table->table[10].volt=887500;	// freq=1352 887500
-				fv_table->table[11].volt=818750;	// freq=1144 818750
-				fv_table->table[12].volt=768750;	// freq=936  762500
-				fv_table->table[13].volt=750000;	// freq=728  700000
-				fv_table->table[14].volt=731250;	// freq=520  643750
-				fv_table->table[15].volt=718750;	// freq=312  600000
-				fv_table->table[16].volt=706250;	// freq=208  600000
+				/*Undervolt the BIG cores*/			//FREQ		UNDERVOLT	STOCK
+				fv_table->table[0].volt=1250000;	//freq=2496 1256250		1300000
+				/*The above frequency are disabled/unattainable. The list below are used instead*/
+				fv_table->table[1].volt=1187500;	//freq=2392 1256250		1300000
+				fv_table->table[2].volt=1168750;	//freq=2288 1187500		1281250
+				fv_table->table[3].volt=1131250;	//freq=2184 1181250		1250000
+				fv_table->table[4].volt=1056250;	//freq=2080 1137500		1187500
+				fv_table->table[5].volt=1031250;	//freq=1976 1125000		1125000
+				fv_table->table[6].volt=987500;		//freq=1872 1081250		1081250
+				fv_table->table[7].volt=962500;		//freq=1768 1037500		1037500
+				fv_table->table[8].volt=887500;		//freq=1664 1000000		1000000
+				fv_table->table[9].volt=818750;		//freq=1560 962500		962500
+				fv_table->table[10].volt=768750;	//freq=1352 887500		887500
+				fv_table->table[11].volt=731250;	//freq=1144 818750		818750
+				fv_table->table[12].volt=706250;	//freq=936  762500		768750
+				fv_table->table[13].volt=700000;	//freq=728  700000		750000
+				fv_table->table[14].volt=650000;	//freq=520  643750		731250
+				/*The frequencies below are disabled in exynos-acme.c*/
+				fv_table->table[15].volt=612500;	// freq=312  600000		718750
+				fv_table->table[16].volt=600000;	// freq=208  600000		706250
 		}
-		// This is used to reveal MIF voltages, MIF level is 10
-		//if(num_of_lv==10){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
-		//}
-		// Undervolt the GPU by 200000uV
 		if(num_of_lv==9){
-				//for(topser =0 ;topser < num_of_lv; topser++){
-					//fv_table->table[topser].volt-=6250;
-					//break;
-					//}
+				/*Undervolt the GPU by 200000uV*/
 				fv_table->table[0].volt=1000000;	// freq=1300	1200000
 				fv_table->table[1].volt=893750;		// freq=1200	1093750
 				fv_table->table[2].volt=818750;		// freq=1100	1018750
