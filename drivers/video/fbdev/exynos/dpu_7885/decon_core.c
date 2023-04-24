@@ -50,6 +50,7 @@
 #include "decon_notify.h"
 #include "../../../../staging/android/sw_sync.h"
 #include "dpp.h"
+#include <linux/devfreq_boost.h>
 
 #ifdef CONFIG_SAMSUNG_TUI
 #include "stui_inf.h"
@@ -1636,15 +1637,17 @@ static void decon_update_regs(struct decon_device *decon,
 #endif
 	} else {
 		decon->frame_cnt_target = decon->frame_cnt + 1;
-		decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC);
-		decon_wait_for_vstatus(decon, 50);
-		if (decon_reg_wait_for_update_timeout(decon->id, SHADOW_UPDATE_TIMEOUT) < 0 && !decon->ignore_vsync) {
-			decon_dump(decon);
-#ifdef CONFIG_LOGGING_BIGDATA_BUG
-			log_decon_bigdata(decon);
-#endif
-			BUG();
-		}
+		/* decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC); */
+		/* decon_wait_for_vstatus(decon, 50); */
+		/* if (decon_reg_wait_for_update_timeout(decon->id, SHADOW_UPDATE_TIMEOUT) < 0 && !decon->ignore_vsync) { */
+			/* usleep_range(17000, 18000); */
+			/* decon->ignore_vsync = true; */
+			/* decon_dump(decon); */ 
+/* #ifdef CONFIG_LOGGING_BIGDATA_BUG */
+			/* log_decon_bigdata(decon); */
+/* #endif */
+			/* BUG(); */ /* We disabled this corruption prevention method (?) temporarily */ 
+		} 
 
 		if (decon->dt.out_type == DECON_OUT_DSI && atomic_read(&decon->ffu_flag)) {
 			if (regs->num_of_window) {
@@ -1670,9 +1673,9 @@ end:
 	decon->bts.ops->bts_update_bw(decon, regs, 1);
 
 	decon_dpp_stop(decon, false);
-#ifdef CONFIG_EXYNOS_SUPPORT_FB_HANDOVER
-	dpu_of_reserved_mem_device_release(decon);
-#endif
+/* #ifdef CONFIG_EXYNOS_SUPPORT_FB_HANDOVER */
+/*	dpu_of_reserved_mem_device_release(decon); */
+/* #endif */
 }
 
 static void decon_update_regs_handler(struct kthread_work *work)
@@ -1879,6 +1882,7 @@ static int decon_set_win_config(struct decon_device *decon,
 
 	num_of_window = decon_get_active_win_count(decon, win_data);
 	if (num_of_window) {
+		devfreq_boost_kick_max(DEVFREQ_EXYNOS_MIF, 70);
 		win_data->fence = decon_create_fence(decon, &fence, regs);
 		if (win_data->fence < 0)
 			goto err_prepare;
@@ -1895,6 +1899,7 @@ static int decon_set_win_config(struct decon_device *decon,
 
 	if (win_data->fence >= 0) {
 #if defined(CONFIG_DPU_20)
+		devfreq_boost_kick_max(DEVFREQ_EXYNOS_MIF, 70);
 		decon_create_release_fences(decon, win_data, fence);
 #endif
 	}
