@@ -1639,11 +1639,11 @@ static void decon_update_regs(struct decon_device *decon,
 #endif
 	} else {
 		decon->frame_cnt_target = decon->frame_cnt + 1;
-		/* decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC); */
-		/* decon_wait_for_vstatus(decon, 50); */
-		/* if (decon_reg_wait_for_update_timeout(decon->id, SHADOW_UPDATE_TIMEOUT) < 0 && !decon->ignore_vsync) { */
+		decon_wait_for_vsync(decon, VSYNC_TIMEOUT_MSEC);
+		decon_wait_for_vstatus(decon, 50);
+		if (decon_reg_wait_for_update_timeout(decon->id, SHADOW_UPDATE_TIMEOUT) < 0 && !decon->ignore_vsync) {
 			/* usleep_range(17000, 18000); */
-			/* decon->ignore_vsync = true; */
+			decon->ignore_vsync = false;
 			/* decon_dump(decon); */ 
 /* #ifdef CONFIG_LOGGING_BIGDATA_BUG */
 			/* log_decon_bigdata(decon); */
