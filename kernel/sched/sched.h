@@ -1455,8 +1455,8 @@ static inline void sub_nr_running(struct rq *rq, unsigned count)
 
 
 #else
-#define add_nr_running add_nr_running
-#define sub_nr_running sub_nr_running
+#define add_nr_running __add_nr_running
+#define sub_nr_running __sub_nr_running
 #endif
 
 static inline void rq_last_tick_reset(struct rq *rq)
