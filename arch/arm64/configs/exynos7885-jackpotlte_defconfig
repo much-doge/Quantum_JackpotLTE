@@ -4383,6 +4383,7 @@ CONFIG_EXYNOS_ADC=y
 # Temperature sensors
 #
 CONFIG_BYPASS_CPU_THROTTLING=y
+# CONFIG_NO_THROTTLING is not set
 # CONFIG_MLX90614 is not set
 # CONFIG_TMP006 is not set
 # CONFIG_TSYS01 is not set
