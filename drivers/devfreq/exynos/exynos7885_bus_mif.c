@@ -157,13 +157,9 @@ static int exynos7885_mif_constraint_parse(struct exynos_devfreq_data *data,
 		config.cmd[3] = 0;
 #ifdef CONFIG_EXYNOS_DVFS_MANAGER
 		if (const_flag) {
-			//if(const_table[use_level].master_freq==1794000)
-			//	const_table[use_level].constraint_freq==533000;
 			const_table[use_level].master_freq = data->opp_list[i].freq;
 			const_table[use_level].constraint_freq
 				= ect_find_constraint_freq(ect_domain, data->opp_list[i].freq);
-			//if(const_table[use_level].master_freq==1794000)
-			//	const_table[use_level].constraint_freq==533000;
 			config.cmd[3] = const_table[use_level].constraint_freq;
 		}
 #endif
@@ -343,7 +339,6 @@ static int exynos7885_devfreq_mif_init_freq_table(struct exynos_devfreq_data *da
 	}
 
 	data->devfreq_profile.initial_freq = cal_dfs_get_boot_freq(data->dfs_id);
-	//data->devfreq_profile.initial_freq=1794000;
 	data->devfreq_profile.suspend_freq = cal_dfs_get_resume_freq(data->dfs_id);
 
 	ret = exynos7885_mif_constraint_parse(data, min_freq, max_freq);
