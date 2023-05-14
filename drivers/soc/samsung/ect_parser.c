@@ -1715,7 +1715,6 @@ static int ect_dump_ap_thermal(struct seq_file *s, void *data)
 			seq_printf(s, "\t\t\t[SW TRIP] : %u\n", range->sw_trip);
 			seq_printf(s, "\t\t\t[FLAG] : %u\n", range->flag);
 		}
-		//pr_info("range->max_frequency : %u kHz - lower : %u upper : %u- topser99\n",range->max_frequency,range->lower_bound_temperature,range->upper_bound_temperature);//hope
 	}
 
 	return 0;
